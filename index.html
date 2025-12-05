@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculatrice Biamortier V12</title>
+    <style>
+        :root {
+            --primary-color: #004a99;
+            --secondary-color: #f4f6f9;
+            --accent-color: #e67e22;
+            --text-color: #2c3e50;
+            --warning-bg: #fffbf0;
+            --warning-border: #f6e05e;
+            --card-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--secondary-color);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #002b55 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-container img {
+            height: 60px;
+            width: auto;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+        }
+
+        .header-text h1 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .header-text p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        /* --- MODE SWITCHER --- */
+        .mode-switcher {
+            display: flex;
+            background: #e2e8f0;
+            padding: 5px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 700;
+            color: #718096;
+            transition: all 0.2s;
+        }
+        
+        .mode-btn.active {
+            background: white;
+            color: var(--primary-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .hidden-field {
+            display: none;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #4a5568;
+            font-size: 0.95rem;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            background-color: #fff;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+            color: #2d3748;
+        }
+
+        select:focus, input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        /* --- VISUEL PRODUIT --- */
+        #product-visual-container {
+            text-align: center;
+            margin-bottom: 25px;
+            min-height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8fafc;
+            border-radius: 12px;
+            border: 1px dashed #e2e8f0;
+            padding: 10px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        #product-img {
+            max-height: 160px;
+            max-width: 100%;
+            height: auto;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+        #product-img.visible { opacity: 1; }
+
+        .visual-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: none;
+        }
+
+        /* --- ALERTE COATED --- */
+        #coated-alert {
+            display: none;
+            background-color: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .coated-checkbox {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .coated-checkbox input {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            accent-color: #d69e2e;
+        }
+        .coated-text strong { display: block; color: #744210; margin-bottom: 2px; }
+        .coated-text span { font-size: 0.9rem; color: #975a16; }
+
+        /* Saisie manuelle */
+        #custom-dimensions {
+            display: none;
+            background-color: #fff4e6;
+            padding: 15px;
+            border: 2px dashed var(--accent-color);
+            border-radius: 12px;
+            margin-bottom: 25px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .dims-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .dim-input label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--accent-color);
+        }
+        
+        .joint-input-group {
+            display: flex;
+            align-items: center;
+        }
+        .joint-input-group input {
+            width: 100px;
+            margin-right: 15px;
+            text-align: center;
+            font-weight: 800;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .btn-calc {
+            width: 100%;
+            background: linear-gradient(to right, var(--accent-color), #d35400);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            margin-top: 15px;
+            box-shadow: 0 6px 12px rgba(230, 126, 34, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn-calc:active { transform: scale(0.98); }
+
+        /* RESULTATS */
+        #result-card {
+            background-color: #fff;
+            border-radius: 16px;
+            margin-top: 40px;
+            display: none;
+            overflow: hidden;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            border-top: 4px solid var(--primary-color);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        .result-summary {
+            background-color: #ebf8ff;
+            padding: 25px;
+            text-align: center;
+            border-bottom: 1px solid #c3dafe;
+        }
+
+        .result-weight {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            line-height: 1.2;
+        }
+        
+        .result-label {
+            color: #4c51bf;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        .logistics-container { padding: 25px; background: #fcfcfc; }
+        .logistics-option {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .logistics-text { flex: 1; }
+        .logistics-visual img {
+            width: 100px; height: auto; border-radius: 8px;
+            border: 1px solid #edf2f7; padding: 5px; background: white;
+        }
+        .logistics-title { font-weight: 800; color: #2d3748; margin-bottom: 15px; font-size: 1.1rem; }
+        .logistics-list { list-style: none; padding: 0; margin: 0; font-size: 1rem; }
+        .logistics-list li {
+            padding: 8px 0; border-bottom: 1px dashed #e2e8f0; display: flex; justify-content: space-between;
+        }
+        .highlight-number { font-weight: 800; color: var(--primary-color); font-size: 1.1rem; }
+
+        .checkbox-container {
+            display: flex; align-items: center; background: white; padding: 12px;
+            border: 2px solid #e2e8f0; border-radius: 10px; margin-top: 8px; cursor: pointer;
+        }
+        .checkbox-container input { width: 20px; height: 20px; margin-right: 15px; accent-color: var(--primary-color); }
+        .checkbox-container label { margin: 0; font-weight: 600; cursor: pointer; color: #2d3748; }
+
+        .technical-info {
+            text-align: center; font-size: 0.85rem; color: #718096; margin-top: 20px;
+            font-style: italic; background: #edf2f7; padding: 10px; border-radius: 8px;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 480px) {
+            .logistics-option { flex-direction: column-reverse; text-align: center; }
+            .logistics-visual img { width: 80px; margin-bottom: 15px; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div class="logo-container">
+            <img src="logo.png" alt="Biallais Industrie Logo">
+        </div>
+        <div class="header-text">
+            <h1>Calculatrice Biamortier</h1>
+            <p>Guide technique & logistique</p>
+        </div>
+    </header>
+
+    <div class="content">
+        <div class="mode-switcher">
+            <button class="mode-btn active" id="btnModeSurface" onclick="switchMode('surface')">Par Surface (m²)</button>
+            <button class="mode-btn" id="btnModeVolume" onclick="switchMode('volume')">Par Volume (Litres)</button>
+        </div>
+
+        <div class="form-group">
+            <label for="category">1. Gamme de produit (Choix du mortier)</label>
+            <select id="category" onchange="updateReferences()">
+                <option value="">-- Sélectionner une gamme --</option>
+            </select>
+        </div>
+
+        <div id="product-visual-container">
+            <div id="badge-coated" class="visual-badge">GAMME COATED - M10</div>
+            <img id="product-img" src="" alt="Sac de mortier adapté">
+        </div>
+
+        <div id="coated-alert">
+            <label class="coated-checkbox">
+                <input type="checkbox" id="isCoated" onchange="updateBagVisual()">
+                <div class="coated-text">
+                    <strong>Brique Coated (Vandersanden) ?</strong>
+                    <span>Cochez cette case pour utiliser le <b>Biamortier M10</b> (Sac Bleu/Rouge).</span>
+                </div>
+            </label>
+        </div>
+
+        <div id="surface-fields">
+            <div class="form-group">
+                <label for="reference">2. Référence</label>
+                <select id="reference" disabled onchange="handleReferenceChange()">
+                    <option value="">-- Sélectionner d'abord la gamme --</option>
+                </select>
+            </div>
+
+            <div id="custom-dimensions">
+                <label style="margin-bottom:10px; color:var(--accent-color);">Dimensions brique (mm)</label>
+                <div class="dims-grid">
+                    <div class="dim-input">
+                        <label>Longueur</label>
+                        <input type="number" id="custL" placeholder="ex: 500">
+                    </div>
+                    <div class="dim-input">
+                        <label>Largeur</label>
+                        <input type="number" id="custW" placeholder="ex: 200">
+                    </div>
+                    <div class="dim-input">
+                        <label>Hauteur</label>
+                        <input type="number" id="custH" placeholder="ex: 200">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="targetJoint">3. Épaisseur du joint (mm)</label>
+                <div class="joint-input-group">
+                    <input type="number" id="targetJoint" value="10" min="5" max="30">
+                    <span>mm</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="surface">4. Surface à monter (m²)</label>
+                <input type="number" id="surface" placeholder="Ex: 50.5" min="0.1" step="any">
+                
+                <div class="checkbox-container" onclick="document.getElementById('doubleWall').click()">
+                    <input type="checkbox" id="doubleWall" onclick="event.stopPropagation()">
+                    <label for="doubleWall">Calcul pour Mur Double</label>
+                </div>
+            </div>
+        </div>
+        <div id="volume-fields" class="hidden-field">
+            <div class="form-group">
+                <label for="inputVolume">2. Volume de mortier souhaité (Litres)</label>
+                <input type="number" id="inputVolume" placeholder="Ex: 500" min="1" step="any">
+                <p style="font-size:0.85rem; color:#718096; margin-top:5px;">
+                    Le calcul se fera à l'envers pour déterminer le nombre de sacs.
+                </p>
+            </div>
+        </div>
+
+        <button class="btn-calc" onclick="calculate()">CALCULER MA COMMANDE</button>
+
+        <div id="result-card">
+            <div class="result-summary">
+                <div class="result-label">Poids Total Mortier Nécessaire</div>
+                <div class="result-weight"><span id="totalWeight">0</span> kg</div>
+                
+                <div style="font-size:1.1rem; color:#718096; margin-top:5px; font-weight:600;">
+                    Soit environ <span id="totalVolume" style="color:#2d3748;">0</span> Litres
+                </div>
+                
+                <div id="brick-result-line" style="font-size:1rem; color:#4a5568; margin-top:15px; border-top:1px solid #c3dafe; padding-top:10px;">
+                    Pour environ <strong id="totalBricks" style="color:var(--accent-color)">0</strong> briques/blocs
+                </div>
+            </div>
+
+            <div class="logistics-container">
+                <div class="logistics-option">
+                    <div class="logistics-text">
+                        <div class="logistics-title">OPTION A : VRAC (Big Bags)</div>
+                        <ul class="logistics-list" id="bigBagList"></ul>
+                    </div>
+                    <div class="logistics-visual">
+                        <img src="bigbag.jpg" alt="Big Bag Mortier">
+                    </div>
+                </div>
+
+                <div class="logistics-option">
+                    <div class="logistics-text">
+                        <div class="logistics-title">OPTION B : PALETTISÉ (Sacs 25kg)</div>
+                        <ul class="logistics-list">
+                            <li>
+                                <span>Palettes complètes (56 sacs)</span>
+                                <span class="highlight-number" id="nbPallets">0</span>
+                            </li>
+                            <li>
+                                <span>Sacs supplémentaires (Reliquat)</span>
+                                <span class="highlight-number" id="nbExtraBags">0</span>
+                            </li>
+                            <li style="border-top: 1px solid #e2e8f0; margin-top:8px; padding-top:12px; color:#718096; font-weight:600;">
+                                Total sacs : <span id="totalBagsCount">0</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="logistics-visual">
+                        <img src="palette.jpg" alt="Palette de sacs">
+                    </div>
+                </div>
+
+                <div class="technical-info" id="tech-info-text">
+                    Calcul basé sur un joint moyen de <strong id="displayJoint">0</strong>mm.<br>
+                    Inclut les coefficients de perte technique.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------------------------------------------------------
+    // LIENS IMAGES SACS
+    // ---------------------------------------------------------
+    const IMG_SAC_BIACOLOR = "sac_biacolor.jpg";
+    const IMG_SAC_TERRE_CUITE = "sac_terrecuite.jpg";
+
+    // ---------------------------------------------------------
+    // VARIABLES GLOBALES
+    // ---------------------------------------------------------
+    let currentMode = 'surface'; // 'surface' ou 'volume'
+
+    // ---------------------------------------------------------
+    // DONNÉES TECHNIQUES
+    // ---------------------------------------------------------
+    const db = {
+        "GAMME BIACOLOR": {
+            items: [
+                { name: "22x22x45", weightM2: 40, bricksM2: 9.45, loss: "80", jointRef: 10 },
+                { name: "19x19x39", weightM2: 40, bricksM2: 12.50, loss: "80", jointRef: 10 },
+                { name: "15x19x39", weightM2: 32, bricksM2: 12.50, loss: "80", jointRef: 10 },
+                { name: "9x19x39", weightM2: 19, bricksM2: 12.50, loss: "80", jointRef: 10 },
+                { name: "4x19x39", weightM2: 6, bricksM2: 12.50, loss: "30", jointRef: 10 },
+                { name: "9x19x24", weightM2: 73, bricksM2: 40.00, loss: "80", jointRef: 10 },
+                { name: "6x22x22", weightM2: 112, bricksM2: 62.11, loss: "80", jointRef: 10 },
+                { name: "6x10,5x22", weightM2: 39, bricksM2: 62.11, loss: "30", jointRef: 10 },
+                { name: "5,6x9,3x19", weightM2: 37, bricksM2: 75.76, loss: "30", jointRef: 10 },
+                { name: "6x2x22 (Plaquette)", weightM2: 8, bricksM2: 62.11, loss: "35", jointRef: 10 },
+                { name: "6,5x2x21,5 (Plaquette)", weightM2: 9, bricksM2: 57.21, loss: "35", jointRef: 10 }
+            ],
+            allowCustom: false 
+        },
+        "TERRE CUITE (Pleines)": {
+            items: [
+                { name: "6x10,5x22", weightM2: 47, bricksM2: 59.87, loss: "35", jointRef: 12 },
+                { name: "6x22x22", weightM2: 98, bricksM2: 59.87, loss: "35", jointRef: 12 },
+                { name: "5x9x19", weightM2: 46, bricksM2: 79.85, loss: "35", jointRef: 12 },
+                { name: "6,5x9x19", weightM2: 40, bricksM2: 64.29, loss: "35", jointRef: 12 },
+                { name: "9x9x19", weightM2: 33, bricksM2: 48.53, loss: "35", jointRef: 12 },
+                { name: "4x10x21", weightM2: 58, bricksM2: 86.63, loss: "35", jointRef: 12 },
+                { name: "5x10x21", weightM2: 51, bricksM2: 72.65, loss: "35", jointRef: 12 },
+                { name: "6,5x10x21", weightM2: 43, bricksM2: 58.50, loss: "35", jointRef: 12 },
+                { name: "4x9x24", weightM2: 51, bricksM2: 76.31, loss: "35", jointRef: 12 },
+                { name: "5x9x24", weightM2: 45, bricksM2: 64.00, loss: "35", jointRef: 12 },
+                { name: "4x9x29", weightM2: 50, bricksM2: 63.68, loss: "35", jointRef: 12 },
+                { name: "5x9x29", weightM2: 43, bricksM2: 53.41, loss: "35", jointRef: 12 },
+                { name: "6x9x29", weightM2: 38, bricksM2: 45.99, loss: "35", jointRef: 12 },
+                { name: "5x10,5x21", weightM2: 53, bricksM2: 72.65, loss: "35", jointRef: 12 }
+            ],
+            allowCustom: true,
+            densityFactor: 2120,
+            defaultJoint: 12
+        },
+        "TERRE CUITE (Perforées)": {
+            items: [
+                { name: "6x10,5x22", weightM2: 69, bricksM2: 59.87, loss: "100", jointRef: 12 },
+                { name: "6x22x22", weightM2: 145, bricksM2: 59.87, loss: "100", jointRef: 12 },
+                { name: "9x9x29", weightM2: 43, bricksM2: 32.46, loss: "100", jointRef: 12 },
+                { name: "14x9x29", weightM2: 33, bricksM2: 21.78, loss: "100", jointRef: 12 },
+                { name: "19x9x29", weightM2: 28, bricksM2: 16.39, loss: "100", jointRef: 12 },
+                { name: "9x14x19", weightM2: 75, bricksM2: 48.53, loss: "100", jointRef: 12 },
+                { name: "14x14x29", weightM2: 51, bricksM2: 21.78, loss: "100", jointRef: 12 },
+                { name: "19x14x29", weightM2: 43, bricksM2: 16.39, loss: "100", jointRef: 12 },
+                { name: "9x19x29", weightM2: 91, bricksM2: 32.46, loss: "100", jointRef: 12 },
+                { name: "14x19x29", weightM2: 69, bricksM2: 21.78, loss: "100", jointRef: 12 },
+                { name: "19x19x29", weightM2: 58, bricksM2: 16.39, loss: "100", jointRef: 12 }
+            ],
+            allowCustom: true,
+            densityFactor: 3150,
+            defaultJoint: 12
+        },
+        "TERRE CUITE (Avec Cuvettes)": {
+            items: [
+                { name: "6x10,5x22", weightM2: 61, bricksM2: 59.87, loss: "75", jointRef: 12 },
+                { name: "5x9x19", weightM2: 60, bricksM2: 79.85, loss: "75", jointRef: 12 },
+                { name: "6,5x9x19", weightM2: 51, bricksM2: 64.29, loss: "75", jointRef: 12 },
+                { name: "9x9x19", weightM2: 42, bricksM2: 48.53, loss: "75", jointRef: 12 },
+                { name: "4x10x21", weightM2: 75, bricksM2: 86.63, loss: "75", jointRef: 12 },
+                { name: "5x10x21", weightM2: 65, bricksM2: 72.65, loss: "75", jointRef: 12 },
+                { name: "6,5x10x21", weightM2: 56, bricksM2: 58.50, loss: "75", jointRef: 12 },
+                { name: "4x9x24", weightM2: 66, bricksM2: 76.31, loss: "75", jointRef: 12 },
+                { name: "5x9x24", weightM2: 58, bricksM2: 64.00, loss: "75", jointRef: 12 },
+                { name: "4x9x29", weightM2: 65, bricksM2: 63.68, loss: "75", jointRef: 12 },
+                { name: "5x9x29", weightM2: 56, bricksM2: 53.41, loss: "75", jointRef: 12 },
+                { name: "6x9x29", weightM2: 50, bricksM2: 45.99, loss: "75", jointRef: 12 },
+                { name: "5x10,5x21", weightM2: 69, bricksM2: 72.65, loss: "75", jointRef: 12 }
+            ],
+            allowCustom: true,
+            densityFactor: 2750,
+            defaultJoint: 12
+        }
+    };
+
+    // DOM Elements
+    const categorySelect = document.getElementById('category');
+    const referenceSelect = document.getElementById('reference');
+    const customDiv = document.getElementById('custom-dimensions');
+    const resultCard = document.getElementById('result-card');
+    const jointInput = document.getElementById('targetJoint');
+    const productImg = document.getElementById('product-img');
+    const visualContainer = document.getElementById('product-visual-container');
+    const coatedAlert = document.getElementById('coated-alert');
+    const coatedCheck = document.getElementById('isCoated');
+    const badgeCoated = document.getElementById('badge-coated');
+    
+    // Mode containers
+    const surfaceFields = document.getElementById('surface-fields');
+    const volumeFields = document.getElementById('volume-fields');
+    const btnSurface = document.getElementById('btnModeSurface');
+    const btnVolume = document.getElementById('btnModeVolume');
+
+    // Init
+    window.onload = function() {
+        for (let key in db) {
+            let option = document.createElement('option');
+            option.value = key;
+            option.text = key;
+            categorySelect.add(option);
+        }
+    };
+
+    // --- LOGIQUE DE CHANGEMENT DE MODE ---
+    function switchMode(mode) {
+        currentMode = mode;
+        resultCard.style.display = 'none'; // reset results
+
+        if (mode === 'surface') {
+            surfaceFields.classList.remove('hidden-field');
+            volumeFields.classList.add('hidden-field');
+            btnSurface.classList.add('active');
+            btnVolume.classList.remove('active');
+        } else {
+            surfaceFields.classList.add('hidden-field');
+            volumeFields.classList.remove('hidden-field');
+            btnSurface.classList.remove('active');
+            btnVolume.classList.add('active');
+        }
+    }
+
+    function updateReferences() {
+        // En mode volume, on n'a pas besoin de toucher au select référence, 
+        // mais on doit quand même gérer l'image et l'alerte Coated.
+        
+        // Reset results
+        resultCard.style.display = 'none';
+
+        const selectedCatKey = categorySelect.value;
+        const categoryData = db[selectedCatKey];
+        
+        // Reset Coated checkbox
+        coatedCheck.checked = false;
+        
+        // Mise à jour de la liste des références (utile uniquement en mode surface)
+        referenceSelect.innerHTML = '<option value="">-- Sélectionner dimensions --</option>';
+        customDiv.style.display = 'none';
+
+        if (selectedCatKey && categoryData) {
+            referenceSelect.disabled = false;
+
+            // --- GESTION ALERTE COATED ---
+            if (selectedCatKey.includes("TERRE CUITE")) {
+                coatedAlert.style.display = "block";
+            } else {
+                coatedAlert.style.display = "none";
+            }
+
+            // Set default joint
+            const defJoint = categoryData.items[0].jointRef; 
+            jointInput.value = defJoint;
+            
+            // Populate list
+            categoryData.items.forEach((item, index) => {
+                let option = document.createElement('option');
+                option.value = index;
+                option.text = item.name;
+                referenceSelect.add(option);
+            });
+
+            if (categoryData.allowCustom) {
+                let option = document.createElement('option');
+                option.value = "custom";
+                option.text = "➔ AUTRE FORMAT (Saisie manuelle)";
+                option.style.fontWeight = "800";
+                option.style.color = "#d35400";
+                referenceSelect.add(option);
+            }
+        } else {
+             referenceSelect.disabled = true;
+             coatedAlert.style.display = "none";
+        }
+        
+        updateBagVisual();
+    }
+
+    function updateBagVisual() {
+        const selectedCatKey = categorySelect.value;
+        const isCoated = coatedCheck.checked;
+        
+        productImg.classList.remove('visible'); 
+        
+        if (!selectedCatKey) return;
+
+        setTimeout(() => {
+            if (selectedCatKey.includes("BIACOLOR") || isCoated) {
+                // SAC BLEU/ROUGE
+                productImg.src = IMG_SAC_BIACOLOR;
+                productImg.alt = "Sac Biamortier Biacolor (M10)";
+                visualContainer.style.backgroundColor = "#ebf8ff"; 
+                
+                if (isCoated) {
+                    badgeCoated.style.display = "block";
+                    visualContainer.style.border = "2px solid #d69e2e";
+                } else {
+                    badgeCoated.style.display = "none";
+                    visualContainer.style.border = "1px dashed #e2e8f0";
+                }
+                
+            } else if (selectedCatKey.includes("TERRE CUITE")) {
+                // SAC ROUGE
+                productImg.src = IMG_SAC_TERRE_CUITE;
+                productImg.alt = "Sac Spécial Brique";
+                visualContainer.style.backgroundColor = "#fff5f5";
+                badgeCoated.style.display = "none";
+                visualContainer.style.border = "1px dashed #e2e8f0";
+            }
+            productImg.classList.add('visible'); 
+        }, 100);
+    }
+
+    function handleReferenceChange() {
+        const val = referenceSelect.value;
+        if (val === "custom") {
+            customDiv.style.display = 'block';
+            resetJointDefault();
+        } else {
+            customDiv.style.display = 'none';
+            resetJointDefault();
+        }
+        resultCard.style.display = 'none';
+    }
+
+    function resetJointDefault() {
+        const cat = categorySelect.value;
+        if(cat && db[cat]) {
+             jointInput.value = db[cat].items[0].jointRef;
+        }
+    }
+
+    // --- ALGORITHMES LOGISTIQUES ---
+    function solveBigBags(weight) {
+        let remaining = weight;
+        let solution = { 1400: 0, 1000: 0, 700: 0 };
+        solution[1400] = Math.floor(remaining / 1400);
+        remaining = remaining % 1400;
+        if (remaining > 0) {
+            if (remaining <= 700) solution[700]++;
+            else if (remaining <= 1000) solution[1000]++;
+            else solution[1400]++; 
+        }
+        return solution;
+    }
+
+    function solvePallets(weight) {
+        const bagWeight = 25;
+        const bagsPerPallet = 56;
+        const totalBags = Math.ceil(weight / bagWeight);
+        const pallets = Math.floor(totalBags / bagsPerPallet);
+        const extraBags = totalBags % bagsPerPallet;
+        return { totalBags, pallets, extraBags };
+    }
+
+    // --- CALCUL PRINCIPAL ---
+    function calculate() {
+        // Validation commune
+        const catKey = categorySelect.value;
+        if (!catKey) {
+            alert("Veuillez sélectionner une gamme de produit.");
+            return;
+        }
+
+        let totalMortarKg = 0;
+        let totalVolume = 0;
+        let totalBricks = 0;
+        const litersPerKg = 16.34 / 25; // 0.6536 L/kg
+
+        // --- BRANCHE SURFACE ---
+        if (currentMode === 'surface') {
+            const refValue = referenceSelect.value;
+            let surfaceRaw = document.getElementById('surface').value;
+            surfaceRaw = surfaceRaw.replace(',', '.'); // Fix virgule
+            const surface = parseFloat(surfaceRaw);
+            const isDouble = document.getElementById('doubleWall').checked;
+            const targetJoint = parseFloat(jointInput.value);
+
+            if (refValue === "") { alert("Veuillez sélectionner une référence."); return; }
+            if (isNaN(surface) || surface <= 0) { alert("Surface invalide."); return; }
+            if (isNaN(targetJoint) || targetJoint <= 0) { alert("Joint invalide."); return; }
+
+            const catData = db[catKey];
+            let calculatedWeightM2 = 0;
+            let calculatedBricksM2 = 0;
+
+            if (refValue !== "custom") {
+                const product = catData.items[refValue];
+                let ratio = targetJoint / product.jointRef;
+                calculatedWeightM2 = Math.ceil(product.weightM2 * ratio);
+                calculatedBricksM2 = product.bricksM2;
+            } else {
+                const L_mm = parseFloat(document.getElementById('custL').value);
+                const W_mm = parseFloat(document.getElementById('custW').value);
+                const H_mm = parseFloat(document.getElementById('custH').value);
+                if (!L_mm || !W_mm || !H_mm) { alert("Remplissez les dimensions manuelles."); return; }
+
+                const L = L_mm / 1000; const H = H_mm / 1000; const W = W_mm / 1000; const J = targetJoint / 1000;
+                calculatedBricksM2 = 1 / ((L + J) * (H + J));
+                const surfJoint = 1 - (calculatedBricksM2 * L * H);
+                const volJoint = surfJoint * W;
+                calculatedWeightM2 = Math.ceil(volJoint * catData.densityFactor);
+            }
+
+            if (isDouble) calculatedWeightM2 *= 2;
+
+            totalMortarKg = calculatedWeightM2 * surface;
+            totalBricks = Math.ceil(calculatedBricksM2 * surface * (isDouble ? 2 : 1));
+            totalVolume = totalMortarKg * litersPerKg;
+
+            // Affichage des éléments spécifiques surface
+            document.getElementById('brick-result-line').style.display = 'block';
+            document.getElementById('tech-info-text').innerHTML = `Calcul basé sur un joint moyen de <strong>${targetJoint}</strong>mm.<br>Inclut les coefficients de perte.`;
+        } 
+        
+        // --- BRANCHE VOLUME (INVERSÉ) ---
+        else {
+            let volumeRaw = document.getElementById('inputVolume').value;
+            volumeRaw = volumeRaw.replace(',', '.');
+            const inputVolume = parseFloat(volumeRaw);
+
+            if (isNaN(inputVolume) || inputVolume <= 0) { alert("Volume invalide."); return; }
+
+            totalVolume = inputVolume;
+            // Poids = Volume / (Liters/Kg)
+            totalMortarKg = inputVolume / litersPerKg;
+            
+            // On ne calcule pas les briques en mode volume
+            totalBricks = 0;
+            
+            // Affichage spécifique
+            document.getElementById('brick-result-line').style.display = 'none'; // Pas de briques
+            document.getElementById('tech-info-text').innerHTML = `Calcul inversé basé sur le volume fourni.<br>Ratio: 1 Sac (25kg) ≈ 16.34L.`;
+        }
+
+        // --- AFFICHAGE RESULTATS ---
+        const bigBagSol = solveBigBags(totalMortarKg);
+        const palletSol = solvePallets(totalMortarKg);
+
+        document.getElementById('totalWeight').innerText = Math.ceil(totalMortarKg).toLocaleString('fr-FR');
+        document.getElementById('totalVolume').innerText = Math.round(totalVolume).toLocaleString('fr-FR');
+        
+        if (currentMode === 'surface') {
+            document.getElementById('totalBricks').innerText = totalBricks.toLocaleString('fr-FR');
+        }
+
+        const bbList = document.getElementById('bigBagList');
+        bbList.innerHTML = "";
+        let hasBB = false;
+        const addBBLine = (count, size) => {
+            if (count > 0) {
+                hasBB = true;
+                bbList.innerHTML += `<li><span>Big Bag <strong>${size}kg</strong></span> <span class="highlight-number">${count}</span></li>`;
+            }
+        };
+        addBBLine(bigBagSol[1400], 1400);
+        addBBLine(bigBagSol[1000], 1000);
+        addBBLine(bigBagSol[700], 700);
+        if(!hasBB) bbList.innerHTML = "<li><span style='color:#999'>Poids insuffisant pour du vrac</span></li>";
+
+        document.getElementById('nbPallets').innerText = palletSol.pallets;
+        document.getElementById('nbExtraBags').innerText = palletSol.extraBags;
+        document.getElementById('totalBagsCount').innerText = palletSol.totalBags;
+
+        resultCard.style.display = 'block';
+        resultCard.scrollIntoView({ behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
