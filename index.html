@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier V12.5</title>
-    <link rel="icon" type="image/png" href="https://placehold.co/32x32/004a99/ffffff?text=B">
+    <title>Calculatrice Biamortier V13</title>
+    <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
             --primary-color: #004a99;
@@ -46,7 +46,7 @@
             height: 60px;
             width: auto;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-            background: white; /* Fond blanc ajouté pour le placeholder */
+            background: white; 
             padding: 5px;
             border-radius: 5px;
         }
@@ -339,7 +339,7 @@
 <div class="container">
     <header>
         <div class="logo-container">
-            <img src="https://placehold.co/200x80/ffffff/004a99?text=BIALLAIS+LOGO" alt="Biallais Industrie Logo">
+            <img src="logo.png" alt="Biallais Industrie Logo">
         </div>
         <div class="header-text">
             <h1>Calculatrice Biamortier</h1>
@@ -453,7 +453,7 @@
                         <ul class="logistics-list" id="bigBagList"></ul>
                     </div>
                     <div class="logistics-visual">
-                        <img src="https://placehold.co/150x200/e2e8f0/555555?text=BIG+BAG" alt="Big Bag Mortier">
+                        <img src="bigbag.jpg" alt="Big Bag Mortier">
                     </div>
                 </div>
 
@@ -475,7 +475,7 @@
                         </ul>
                     </div>
                     <div class="logistics-visual">
-                         <img src="https://placehold.co/150x200/e2e8f0/555555?text=PALETTE" alt="Palette de sacs">
+                        <img src="palette.jpg" alt="Palette de sacs">
                     </div>
                 </div>
 
@@ -492,9 +492,9 @@
     // ---------------------------------------------------------
     // 1. CONFIGURATION DES IMAGES
     // ---------------------------------------------------------
-    // Remplacez les liens https par vos noms de fichiers locaux (ex: "sac_biacolor.jpg")
-    const IMG_SAC_BIACOLOR = "https://placehold.co/300x400/004a99/ffffff?text=Sac+Biacolor+M10";
-    const IMG_SAC_TERRE_CUITE = "https://placehold.co/300x400/e67e22/ffffff?text=Sac+Terre+Cuite";
+    // Ces noms doivent correspondre exactement à vos fichiers (minuscules)
+    const IMG_SAC_BIACOLOR = "sac_biacolor.jpg";
+    const IMG_SAC_TERRE_CUITE = "sac_terrecuite.jpg";
 
     // ---------------------------------------------------------
     // 2. VARIABLES GLOBALES
@@ -706,7 +706,7 @@
         
         productImg.classList.remove('visible'); 
         
-        // Si aucune catégorie n'est choisie (possible en mode volume)
+        // Si aucune catégorie n'est choisie
         if (!selectedCatKey) {
              visualContainer.style.backgroundColor = "#f8fafc";
              visualContainer.style.border = "1px dashed #e2e8f0";
