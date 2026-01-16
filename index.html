@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier V12</title>
-    <link rel="apple-touch-icon" href="icon.png">
-    <link rel="icon" type="image/png" href="icon.png">
+    <title>Calculatrice Biamortier V12.5</title>
+    <link rel="icon" type="image/png" href="https://placehold.co/32x32/004a99/ffffff?text=B">
     <style>
         :root {
             --primary-color: #004a99;
@@ -47,6 +46,9 @@
             height: 60px;
             width: auto;
             filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            background: white; /* Fond blanc ajouté pour le placeholder */
+            padding: 5px;
+            border-radius: 5px;
         }
 
         .header-text h1 {
@@ -121,6 +123,12 @@
             transition: border-color 0.2s;
             box-sizing: border-box;
             color: #2d3748;
+        }
+
+        select:disabled {
+            background-color: #edf2f7;
+            color: #a0aec0;
+            cursor: not-allowed;
         }
 
         select:focus, input:focus {
@@ -331,7 +339,7 @@
 <div class="container">
     <header>
         <div class="logo-container">
-            <img src="logo.png" alt="Biallais Industrie Logo">
+            <img src="https://placehold.co/200x80/ffffff/004a99?text=BIALLAIS+LOGO" alt="Biallais Industrie Logo">
         </div>
         <div class="header-text">
             <h1>Calculatrice Biamortier</h1>
@@ -346,7 +354,7 @@
         </div>
 
         <div class="form-group">
-            <label for="category">1. Gamme de produit (Choix du mortier)</label>
+            <label for="category">1. Gamme de produit (Optionnel en mode volume)</label>
             <select id="category" onchange="updateReferences()">
                 <option value="">-- Sélectionner une gamme --</option>
             </select>
@@ -411,12 +419,13 @@
                 </div>
             </div>
         </div>
+        
         <div id="volume-fields" class="hidden-field">
             <div class="form-group">
                 <label for="inputVolume">2. Volume de mortier souhaité (Litres)</label>
                 <input type="number" id="inputVolume" placeholder="Ex: 500" min="1" step="any">
                 <p style="font-size:0.85rem; color:#718096; margin-top:5px;">
-                    Le calcul se fera à l'envers pour déterminer le nombre de sacs.
+                    Le calcul convertit les Litres en poids (Kg) pour déterminer le conditionnement.
                 </p>
             </div>
         </div>
@@ -444,7 +453,7 @@
                         <ul class="logistics-list" id="bigBagList"></ul>
                     </div>
                     <div class="logistics-visual">
-                        <img src="bigbag.jpg" alt="Big Bag Mortier">
+                        <img src="https://placehold.co/150x200/e2e8f0/555555?text=BIG+BAG" alt="Big Bag Mortier">
                     </div>
                 </div>
 
@@ -466,7 +475,7 @@
                         </ul>
                     </div>
                     <div class="logistics-visual">
-                        <img src="palette.jpg" alt="Palette de sacs">
+                         <img src="https://placehold.co/150x200/e2e8f0/555555?text=PALETTE" alt="Palette de sacs">
                     </div>
                 </div>
 
@@ -481,18 +490,19 @@
 
 <script>
     // ---------------------------------------------------------
-    // LIENS IMAGES SACS
+    // 1. CONFIGURATION DES IMAGES
     // ---------------------------------------------------------
-    const IMG_SAC_BIACOLOR = "sac_biacolor.jpg";
-    const IMG_SAC_TERRE_CUITE = "sac_terrecuite.jpg";
+    // Remplacez les liens https par vos noms de fichiers locaux (ex: "sac_biacolor.jpg")
+    const IMG_SAC_BIACOLOR = "https://placehold.co/300x400/004a99/ffffff?text=Sac+Biacolor+M10";
+    const IMG_SAC_TERRE_CUITE = "https://placehold.co/300x400/e67e22/ffffff?text=Sac+Terre+Cuite";
 
     // ---------------------------------------------------------
-    // VARIABLES GLOBALES
+    // 2. VARIABLES GLOBALES
     // ---------------------------------------------------------
     let currentMode = 'surface'; // 'surface' ou 'volume'
 
     // ---------------------------------------------------------
-    // DONNÉES TECHNIQUES
+    // 3. DONNÉES TECHNIQUES
     // ---------------------------------------------------------
     const db = {
         "GAMME BIACOLOR": {
@@ -600,7 +610,9 @@
         }
     };
 
-    // --- LOGIQUE DE CHANGEMENT DE MODE ---
+    // ---------------------------------------------------------
+    // 4. LOGIQUE DE CHANGEMENT DE MODE
+    // ---------------------------------------------------------
     function switchMode(mode) {
         currentMode = mode;
         resultCard.style.display = 'none'; // reset results
@@ -608,30 +620,45 @@
         if (mode === 'surface') {
             surfaceFields.classList.remove('hidden-field');
             volumeFields.classList.add('hidden-field');
+            
             btnSurface.classList.add('active');
             btnVolume.classList.remove('active');
+            
+            // On réactive le select référence
+            referenceSelect.disabled = false;
+            
+            // On relance la logique pour peupler le select si une catégorie est déjà là
+            updateReferences(); 
+
         } else {
             surfaceFields.classList.add('hidden-field');
             volumeFields.classList.remove('hidden-field');
+            
             btnSurface.classList.remove('active');
             btnVolume.classList.add('active');
+            
+            // On désactive le select référence pour éviter toute confusion
+            referenceSelect.disabled = true;
+            // On cache l'alerte Coated inutile en volume
+            coatedAlert.style.display = "none";
         }
     }
 
     function updateReferences() {
-        // En mode volume, on n'a pas besoin de toucher au select référence, 
-        // mais on doit quand même gérer l'image et l'alerte Coated.
-        
-        // Reset results
-        resultCard.style.display = 'none';
+        // En mode volume, on met seulement à jour l'image si une catégorie est choisie
+        if (currentMode === 'volume') {
+            updateBagVisual();
+            return;
+        }
 
+        // Mode Surface : Comportement classique
+        resultCard.style.display = 'none';
         const selectedCatKey = categorySelect.value;
         const categoryData = db[selectedCatKey];
         
         // Reset Coated checkbox
         coatedCheck.checked = false;
         
-        // Mise à jour de la liste des références (utile uniquement en mode surface)
         referenceSelect.innerHTML = '<option value="">-- Sélectionner dimensions --</option>';
         customDiv.style.display = 'none';
 
@@ -679,7 +706,13 @@
         
         productImg.classList.remove('visible'); 
         
-        if (!selectedCatKey) return;
+        // Si aucune catégorie n'est choisie (possible en mode volume)
+        if (!selectedCatKey) {
+             visualContainer.style.backgroundColor = "#f8fafc";
+             visualContainer.style.border = "1px dashed #e2e8f0";
+             badgeCoated.style.display = "none";
+             return;
+        }
 
         setTimeout(() => {
             if (selectedCatKey.includes("BIACOLOR") || isCoated) {
@@ -750,30 +783,37 @@
         return { totalBags, pallets, extraBags };
     }
 
-    // --- CALCUL PRINCIPAL ---
+    // ---------------------------------------------------------
+    // 5. FONCTION CALCUL PRINCIPALE
+    // ---------------------------------------------------------
     function calculate() {
-        // Validation commune
         const catKey = categorySelect.value;
-        if (!catKey) {
-            alert("Veuillez sélectionner une gamme de produit.");
-            return;
-        }
+        const litersPerKg = 16.34 / 25; // 0.6536 L/kg
 
         let totalMortarKg = 0;
         let totalVolume = 0;
         let totalBricks = 0;
-        const litersPerKg = 16.34 / 25; // 0.6536 L/kg
 
-        // --- BRANCHE SURFACE ---
+        // --- BRANCHE SURFACE (Logic stricte) ---
         if (currentMode === 'surface') {
+            
+            // Validation stricte
+            if (!catKey) { 
+                alert("Veuillez sélectionner une gamme de produit."); 
+                return; 
+            }
             const refValue = referenceSelect.value;
+            if (refValue === "") { 
+                alert("Veuillez sélectionner une référence (format)."); 
+                return; 
+            }
+
             let surfaceRaw = document.getElementById('surface').value;
-            surfaceRaw = surfaceRaw.replace(',', '.'); // Fix virgule
+            surfaceRaw = surfaceRaw.replace(',', '.');
             const surface = parseFloat(surfaceRaw);
             const isDouble = document.getElementById('doubleWall').checked;
             const targetJoint = parseFloat(jointInput.value);
 
-            if (refValue === "") { alert("Veuillez sélectionner une référence."); return; }
             if (isNaN(surface) || surface <= 0) { alert("Surface invalide."); return; }
             if (isNaN(targetJoint) || targetJoint <= 0) { alert("Joint invalide."); return; }
 
@@ -787,6 +827,7 @@
                 calculatedWeightM2 = Math.ceil(product.weightM2 * ratio);
                 calculatedBricksM2 = product.bricksM2;
             } else {
+                // Mode Custom
                 const L_mm = parseFloat(document.getElementById('custL').value);
                 const W_mm = parseFloat(document.getElementById('custW').value);
                 const H_mm = parseFloat(document.getElementById('custH').value);
@@ -805,13 +846,14 @@
             totalBricks = Math.ceil(calculatedBricksM2 * surface * (isDouble ? 2 : 1));
             totalVolume = totalMortarKg * litersPerKg;
 
-            // Affichage des éléments spécifiques surface
             document.getElementById('brick-result-line').style.display = 'block';
             document.getElementById('tech-info-text').innerHTML = `Calcul basé sur un joint moyen de <strong>${targetJoint}</strong>mm.<br>Inclut les coefficients de perte.`;
+
         } 
         
-        // --- BRANCHE VOLUME (INVERSÉ) ---
+        // --- BRANCHE VOLUME (Logic souple) ---
         else {
+            // Pas de validation de catégorie ou de référence
             let volumeRaw = document.getElementById('inputVolume').value;
             volumeRaw = volumeRaw.replace(',', '.');
             const inputVolume = parseFloat(volumeRaw);
@@ -819,18 +861,16 @@
             if (isNaN(inputVolume) || inputVolume <= 0) { alert("Volume invalide."); return; }
 
             totalVolume = inputVolume;
-            // Poids = Volume / (Liters/Kg)
             totalMortarKg = inputVolume / litersPerKg;
             
-            // On ne calcule pas les briques en mode volume
+            // Pas de briques
             totalBricks = 0;
             
-            // Affichage spécifique
-            document.getElementById('brick-result-line').style.display = 'none'; // Pas de briques
+            document.getElementById('brick-result-line').style.display = 'none';
             document.getElementById('tech-info-text').innerHTML = `Calcul inversé basé sur le volume fourni.<br>Ratio: 1 Sac (25kg) ≈ 16.34L.`;
         }
 
-        // --- AFFICHAGE RESULTATS ---
+        // --- AFFICHAGE RESULTATS COMMUN ---
         const bigBagSol = solveBigBags(totalMortarKg);
         const palletSol = solvePallets(totalMortarKg);
 
