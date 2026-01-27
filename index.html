@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier V18</title>
+    <title>Calculatrice Biamortier V21</title>
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
@@ -194,7 +194,7 @@
             outline: none;
         }
 
-        /* --- VISUEL PRODUIT (MISE A JOUR POUR DUAL) --- */
+        /* --- VISUEL PRODUIT (FOND BLANC) --- */
         #product-visual-container {
             text-align: center;
             margin-bottom: 25px;
@@ -202,7 +202,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #f8fafc;
+            background-color: #ffffff;
             border-radius: 12px;
             border: 1px dashed #e2e8f0;
             padding: 15px;
@@ -210,12 +210,11 @@
             position: relative;
         }
 
-        /* Container interne pour les images */
         .visual-wrapper {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 20px; /* Espace entre les deux sacs */
+            gap: 20px; 
             width: 100%;
         }
         
@@ -228,7 +227,6 @@
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
         
-        /* Quand il y a deux images, on réduit légèrement leur taille max pour que ça rentre */
         .visual-wrapper.dual-mode .product-img {
             max-height: 140px;
             max-width: 45%; 
@@ -653,7 +651,7 @@
                     </div>
                     <div class="dim-input">
                         <label>Hauteur</label>
-                        <input type="number" id="jointH" placeholder="ex: 50">
+                        <input type="number" id="jointH" placeholder="ex: 60">
                     </div>
                 </div>
             </div>
@@ -667,7 +665,7 @@
                     </div>
                     <div class="dim-input">
                         <label style="color:#d35400; font-weight:800;">Profondeur</label>
-                        <input type="number" id="jointD" placeholder="ex: 15" style="border-color:#d35400;">
+                        <input type="number" id="jointD" placeholder="ex: 20" style="border-color:#d35400;">
                     </div>
                 </div>
             </div>
@@ -679,7 +677,7 @@
 
             <p style="font-size:0.9rem; color:#718096; margin-bottom:20px; background:#f3e5f5; padding:10px; border-radius:8px;">
                 <strong>Options :</strong> Le calcul est valable pour <strong>Biajoint</strong> ou <strong>Easy Joint</strong>.<br>
-                (Densité ref : 16,45 Litres pour 25 kg).
+                Calibré sur une consommation réelle (perte incluse).
             </p>
 
         </div>
@@ -694,6 +692,10 @@
                 
                 <div style="font-size:1.1rem; color:#718096; margin-top:5px; font-weight:600;">
                     Soit environ <span id="totalVolume" style="color:#2d3748;">0</span> Litres
+                </div>
+
+                <div id="consumption-result-line" style="font-size:0.95rem; color:#2c3e50; margin-top:10px; background:rgba(255,255,255,0.7); padding:5px; border-radius:5px; display:none;">
+                     Consommation estimée : <strong id="consomVal" style="color:var(--accent-color);">0</strong> kg/m²
                 </div>
                 
                 <div id="brick-result-line" style="font-size:1rem; color:#4a5568; margin-top:15px; border-top:1px solid #c3dafe; padding-top:10px;">
@@ -748,7 +750,7 @@
     // ---------------------------------------------------------
     const IMG_SAC_BIACOLOR = "sac_biacolor.jpg";
     const IMG_SAC_TERRE_CUITE = "sac_terrecuite.jpg";
-    const IMG_SAC_BETON = "sac_tradibeton.png";
+    const IMG_SAC_BETON = "sac_tradibeton.jpg";
     const IMG_SAC_BIAJOINT = "sac_biajoint.jpg";
     const IMG_SAC_EASYJOINT = "sac_easyjoint.jpg";
 
@@ -1012,7 +1014,7 @@
     }
 
     // ------------------------------------------------------------------
-    // FONCTION MISE A JOUR VISUELS (MODIFIÉE POUR DUAL)
+    // FONCTION MISE A JOUR VISUELS
     // ------------------------------------------------------------------
     function updateBagVisual() {
         const isCoated = coatedCheck.checked;
@@ -1028,7 +1030,7 @@
              setTimeout(() => {
                 imgPrimary.src = IMG_SAC_BETON;
                 imgPrimary.alt = "Sac Tradi Béton";
-                visualContainer.style.backgroundColor = "#f0f2f5";
+                visualContainer.style.backgroundColor = "#ffffff";
                 visualContainer.style.border = "1px solid #bdc3c7";
                 badgeCoated.style.display = "none";
                 imgPrimary.classList.add('visible'); 
@@ -1039,22 +1041,18 @@
         // --- CAS JOINT (DUAL MODE) ---
         if (currentMainType === 'joint') {
              setTimeout(() => {
-                // Set images
                 imgPrimary.src = IMG_SAC_BIAJOINT;
                 imgPrimary.alt = "Sac Biajoint";
-                
                 imgSecondary.src = IMG_SAC_EASYJOINT;
                 imgSecondary.alt = "Sac Easy Joint";
                 
-                // Show both
                 imgSecondary.classList.remove('hidden');
-                visualWrapper.classList.add('dual-mode'); // CSS handles sizing
+                visualWrapper.classList.add('dual-mode'); 
 
-                visualContainer.style.backgroundColor = "#f3e5f5";
+                visualContainer.style.backgroundColor = "#ffffff";
                 visualContainer.style.border = "1px solid #8e44ad";
                 badgeCoated.style.display = "none";
                 
-                // Fade in
                 imgPrimary.classList.add('visible'); 
                 imgSecondary.classList.add('visible');
              }, 100);
@@ -1064,7 +1062,7 @@
         // --- CAS MORTIER ---
         const selectedCatKey = categorySelect.value;
         if (!selectedCatKey) {
-             visualContainer.style.backgroundColor = "#f8fafc";
+             visualContainer.style.backgroundColor = "#ffffff"; 
              visualContainer.style.border = "1px dashed #e2e8f0";
              badgeCoated.style.display = "none";
              return;
@@ -1073,7 +1071,7 @@
         setTimeout(() => {
             if (selectedCatKey.includes("BIACOLOR") || isCoated) {
                 imgPrimary.src = IMG_SAC_BIACOLOR;
-                visualContainer.style.backgroundColor = "#ebf8ff"; 
+                visualContainer.style.backgroundColor = "#ffffff";
                 if (isCoated) {
                     badgeCoated.style.display = "block";
                     visualContainer.style.border = "2px solid #d69e2e";
@@ -1083,7 +1081,7 @@
                 }
             } else if (selectedCatKey.includes("TERRE CUITE")) {
                 imgPrimary.src = IMG_SAC_TERRE_CUITE;
-                visualContainer.style.backgroundColor = "#fff5f5";
+                visualContainer.style.backgroundColor = "#ffffff";
                 badgeCoated.style.display = "none";
                 visualContainer.style.border = "1px dashed #e2e8f0";
             }
@@ -1141,52 +1139,42 @@
         let totalVolume = 0;
         let totalBricks = 0;
         let infoText = "";
+        let consumptionPerM2 = 0; // NEW Variable
+        let showConsom = false;   // Flag display
 
         // ========================
-        // 1. MODE JOINT (NEW)
+        // 1. MODE JOINT
         // ========================
         if (currentMainType === 'joint') {
              const L_mm = parseFloat(document.getElementById('jointL').value);
              const H_mm = parseFloat(document.getElementById('jointH').value);
-             const W_mm = parseFloat(document.getElementById('jointW').value); // Largeur joint
-             const D_mm = parseFloat(document.getElementById('jointD').value); // Profondeur (Epaisseur plaquette)
+             const W_mm = parseFloat(document.getElementById('jointW').value); 
+             const D_mm = parseFloat(document.getElementById('jointD').value); 
              const Surf = parseFloat(document.getElementById('jointSurface').value);
 
              if(!L_mm || !H_mm || !W_mm || !D_mm || !Surf) {
                  alert("Veuillez remplir toutes les dimensions et la surface."); return;
              }
 
-             // Conversion en Mètres
-             const L = L_mm / 1000;
-             const H = H_mm / 1000;
-             const W = W_mm / 1000; // largeur joint (espace)
-             const D = D_mm / 1000; // profondeur
-
-             // Surface d'une unité AVEC joint
+             const L = L_mm / 1000; const H = H_mm / 1000; const W = W_mm / 1000; const D = D_mm / 1000;
              const areaUnitWithJoint = (L + W) * (H + W);
              const nbUnitsPerM2 = 1 / areaUnitWithJoint;
-             
-             // Surface réelle des plaquettes (SANS joint) sur 1 m2
              const areaBricksOnly = nbUnitsPerM2 * (L * H);
-             
-             // Surface de joint (Vide) sur 1 m2
              const areaJointOnly = 1 - areaBricksOnly;
-             
-             // Volume de joint sur 1 m2 (Surface Vide * Profondeur)
              const volM3PerM2 = areaJointOnly * D;
-             
-             // Volume Total en Litres
              const volTotalM3 = volM3PerM2 * Surf;
-             totalVolume = volTotalM3 * 1000; // Litres
+             const volTotalLitres = volTotalM3 * 1000; 
 
-             // Poids : 1 sac (25kg) = 16.45 Litres
-             // 1 Litre = 25 / 16.45 = 1.5197 kg
-             const kgPerLiter = 25 / 16.45;
+             const realConsumptionCoeff = 2.11; 
              
-             totalMortarKg = totalVolume * kgPerLiter;
-             totalMortarKg = totalMortarKg * 1.05; // Marge sécurité 5%
+             totalMortarKg = volTotalLitres * realConsumptionCoeff;
+             totalVolume = volTotalLitres;
              
-             infoText = "Calcul basé sur le volume vide entre les plaquettes.<br>Densité : 1 Sac (25kg) = 16.45L.";
+             // Calcul Consommation / m2
+             consumptionPerM2 = totalMortarKg / Surf;
+             showConsom = true;
+
+             infoText = "Calcul calibré sur retours chantier (Coef perte/compactage inclus).<br>Consommation réelle approx : 2.11 kg par Litre de vide.";
              document.getElementById('brick-result-line').style.display = 'none';
         }
 
@@ -1211,6 +1199,7 @@
             totalMortarKg = totalVolume * kgPerLiter;
             infoText = "Calcul basé sur un rendement de 12 Litres de béton par sac de 25kg.";
             document.getElementById('brick-result-line').style.display = 'none';
+            showConsom = false; // Pas de m2 pour le béton ici
         } 
         
         // ========================
@@ -1259,6 +1248,10 @@
                 totalBricks = Math.ceil(calculatedBricksM2 * surface * (isDouble ? 2 : 1));
                 totalVolume = totalMortarKg * litersPerKg;
                 
+                // Calcul Consommation / m2
+                consumptionPerM2 = calculatedWeightM2;
+                showConsom = true;
+
                 infoText = `Calcul basé sur un joint moyen de <strong>${targetJoint}</strong>mm.<br>Inclut les coefficients de perte.`;
                 document.getElementById('brick-result-line').style.display = 'block';
 
@@ -1272,6 +1265,7 @@
                 totalMortarKg = totalVolume / litersPerKg;
                 infoText = `Calcul inversé basé sur le volume fourni.<br>Ratio: 1 Sac (25kg) ≈ 16.34L.`;
                 document.getElementById('brick-result-line').style.display = 'none';
+                showConsom = false;
             }
         }
 
@@ -1282,6 +1276,15 @@
         document.getElementById('totalWeight').innerText = Math.ceil(totalMortarKg).toLocaleString('fr-FR');
         document.getElementById('totalVolume').innerText = Math.round(totalVolume).toLocaleString('fr-FR');
         
+        // Affichage Consommation m2
+        const consomLine = document.getElementById('consumption-result-line');
+        if (showConsom) {
+            document.getElementById('consomVal').innerText = consumptionPerM2.toLocaleString('fr-FR', {maximumFractionDigits: 2});
+            consomLine.style.display = 'block';
+        } else {
+            consomLine.style.display = 'none';
+        }
+
         if (currentMainType === 'mortar' && currentMortarMode === 'surface') {
             document.getElementById('totalBricks').innerText = totalBricks.toLocaleString('fr-FR');
         }
