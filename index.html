@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier V22</title>
+    <title>Calculatrice Biamortier V23</title>
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
@@ -194,7 +194,7 @@
             outline: none;
         }
 
-        /* --- VISUEL PRODUIT (FOND BLANC + MIX-BLEND) --- */
+        /* --- VISUEL PRODUIT --- */
         #product-visual-container {
             text-align: center;
             margin-bottom: 25px;
@@ -224,16 +224,27 @@
             height: auto;
             opacity: 0;
             transition: opacity 0.5s ease;
-            /* Astuce pour enlever le carré blanc si l'image en a un */
-            mix-blend-mode: multiply; 
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+            mix-blend-mode: multiply; /* Enlève le blanc du JPG */
         }
         
-        /* MODE DOUBLE SACS : TAILLE FORCÉE IDENTIQUE */
-        .visual-wrapper.dual-mode .product-img {
-            height: 135px; /* Force la même hauteur pour les deux */
-            width: auto;   /* La largeur s'adapte */
-            max-width: 45%; 
-            object-fit: contain; /* Garde les proportions */
+        /* --- REGLAGE FIN DES TAILLES (DUAL MODE) --- */
+        /* Ici vous pouvez changer la valeur 'height' pour équilibrer les sacs */
+        
+        .visual-wrapper.dual-mode #img-primary {
+            /* Sac de Gauche (Biajoint) */
+            height: 150px; 
+            width: auto;
+            max-width: 48%;
+            object-fit: contain;
+        }
+
+        .visual-wrapper.dual-mode #img-secondary {
+            /* Sac de Droite (Easy Joint) */
+            height: 140px; /* <--- Augmentez ce chiffre si Easy Joint parait trop petit (ex: 155px) */
+            width: auto;
+            max-width: 48%;
+            object-fit: contain;
         }
 
         .product-img.visible { opacity: 1; }
@@ -1177,7 +1188,7 @@
              consumptionPerM2 = totalMortarKg / Surf;
              showConsom = true;
 
-             infoText = "Calcul calibré sur retours chantier (Coef perte/serrage inclus).";
+             infoText = "Calcul calibré sur retours chantier (Coef perte/compactage inclus).";
              document.getElementById('brick-result-line').style.display = 'none';
         }
 
