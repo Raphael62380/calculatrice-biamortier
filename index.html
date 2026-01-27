@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier V21</title>
+    <title>Calculatrice Biamortier V22</title>
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
@@ -194,7 +194,7 @@
             outline: none;
         }
 
-        /* --- VISUEL PRODUIT (FOND BLANC) --- */
+        /* --- VISUEL PRODUIT (FOND BLANC + MIX-BLEND) --- */
         #product-visual-container {
             text-align: center;
             margin-bottom: 25px;
@@ -202,10 +202,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: #ffffff;
-	    border: none; /* Au lieu de : border: 1px dashed #e2e8f0; */
-            box-shadow: none; /* Si vous voulez enlever l'ombre aussi */
+            background-color: #ffffff; /* FOND BLANC */
             border-radius: 12px;
+            border: 1px dashed #e2e8f0;
             padding: 15px;
             transition: all 0.3s ease;
             position: relative;
@@ -225,14 +224,16 @@
             height: auto;
             opacity: 0;
             transition: opacity 0.5s ease;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-/* AJOUTEZ CETTE LIGNE MAGIQUE : */
-    mix-blend-mode: multiply;
+            /* Astuce pour enlever le carré blanc si l'image en a un */
+            mix-blend-mode: multiply; 
         }
         
+        /* MODE DOUBLE SACS : TAILLE FORCÉE IDENTIQUE */
         .visual-wrapper.dual-mode .product-img {
-            max-height: 140px;
+            height: 135px; /* Force la même hauteur pour les deux */
+            width: auto;   /* La largeur s'adapte */
             max-width: 45%; 
+            object-fit: contain; /* Garde les proportions */
         }
 
         .product-img.visible { opacity: 1; }
@@ -1017,7 +1018,7 @@
     }
 
     // ------------------------------------------------------------------
-    // FONCTION MISE A JOUR VISUELS
+    // FONCTION MISE A JOUR VISUELS (FOND BLANC + DUAL FIXED)
     // ------------------------------------------------------------------
     function updateBagVisual() {
         const isCoated = coatedCheck.checked;
@@ -1142,8 +1143,8 @@
         let totalVolume = 0;
         let totalBricks = 0;
         let infoText = "";
-        let consumptionPerM2 = 0; // NEW Variable
-        let showConsom = false;   // Flag display
+        let consumptionPerM2 = 0; 
+        let showConsom = false;   
 
         // ========================
         // 1. MODE JOINT
@@ -1173,11 +1174,10 @@
              totalMortarKg = volTotalLitres * realConsumptionCoeff;
              totalVolume = volTotalLitres;
              
-             // Calcul Consommation / m2
              consumptionPerM2 = totalMortarKg / Surf;
              showConsom = true;
 
-             infoText = "Calcul calibré sur retours chantier (Coef perte/compactage inclus).<br>Consommation réelle approx : 2.11 kg par Litre de vide.";
+             infoText = "Calcul calibré sur retours chantier (Coef perte/serrage inclus).";
              document.getElementById('brick-result-line').style.display = 'none';
         }
 
@@ -1202,7 +1202,7 @@
             totalMortarKg = totalVolume * kgPerLiter;
             infoText = "Calcul basé sur un rendement de 12 Litres de béton par sac de 25kg.";
             document.getElementById('brick-result-line').style.display = 'none';
-            showConsom = false; // Pas de m2 pour le béton ici
+            showConsom = false; 
         } 
         
         // ========================
