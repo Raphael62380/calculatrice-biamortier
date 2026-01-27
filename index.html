@@ -203,8 +203,9 @@
             align-items: center;
             justify-content: center;
             background-color: #ffffff;
+	    border: none; /* Au lieu de : border: 1px dashed #e2e8f0; */
+            box-shadow: none; /* Si vous voulez enlever l'ombre aussi */
             border-radius: 12px;
-            border: 1px dashed #e2e8f0;
             padding: 15px;
             transition: all 0.3s ease;
             position: relative;
@@ -225,6 +226,8 @@
             opacity: 0;
             transition: opacity 0.5s ease;
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+/* AJOUTEZ CETTE LIGNE MAGIQUE : */
+    mix-blend-mode: multiply;
         }
         
         .visual-wrapper.dual-mode .product-img {
