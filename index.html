@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier & Béton V16</title>
+    <title>Calculatrice Biamortier V18</title>
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
@@ -11,6 +11,7 @@
             --secondary-color: #f4f6f9;
             --accent-color: #e67e22;
             --concrete-color: #7f8c8d;
+            --joint-color: #8e44ad;
             --text-color: #2c3e50;
             --warning-bg: #fffbf0;
             --warning-border: #f6e05e;
@@ -74,16 +75,17 @@
             display: flex;
             margin-bottom: 25px;
             border-bottom: 2px solid #e2e8f0;
+            gap: 5px;
         }
 
         .main-type-btn {
             flex: 1;
-            padding: 15px;
+            padding: 15px 5px;
             text-align: center;
             border: none;
             background: transparent;
             font-weight: 800;
-            font-size: 1.1rem;
+            font-size: 1rem;
             color: #a0aec0;
             cursor: pointer;
             transition: all 0.3s;
@@ -105,8 +107,13 @@
             color: var(--concrete-color);
             border-bottom-color: var(--concrete-color);
         }
+        
+        .main-type-btn.active-joint {
+            color: var(--joint-color);
+            border-bottom-color: var(--joint-color);
+        }
 
-        /* --- MODE SWITCHER (Onglets internes) --- */
+        /* --- MODE SWITCHER --- */
         .mode-switcher {
             display: flex;
             background: #e2e8f0;
@@ -134,7 +141,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
-        /* Variante pour le béton */
         .mode-btn.concrete-active {
             background: white;
             color: var(--concrete-color);
@@ -170,7 +176,6 @@
             color: #2d3748;
         }
 
-        /* Input group pour volume + unité */
         .input-with-unit {
             display: flex;
             gap: 10px;
@@ -189,7 +194,7 @@
             outline: none;
         }
 
-        /* --- VISUEL PRODUIT --- */
+        /* --- VISUEL PRODUIT (MISE A JOUR POUR DUAL) --- */
         #product-visual-container {
             text-align: center;
             margin-bottom: 25px;
@@ -200,12 +205,21 @@
             background-color: #f8fafc;
             border-radius: 12px;
             border: 1px dashed #e2e8f0;
-            padding: 10px;
+            padding: 15px;
             transition: all 0.3s ease;
             position: relative;
         }
+
+        /* Container interne pour les images */
+        .visual-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px; /* Espace entre les deux sacs */
+            width: 100%;
+        }
         
-        #product-img {
+        .product-img {
             max-height: 160px;
             max-width: 100%;
             height: auto;
@@ -213,7 +227,15 @@
             transition: opacity 0.5s ease;
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
         }
-        #product-img.visible { opacity: 1; }
+        
+        /* Quand il y a deux images, on réduit légèrement leur taille max pour que ça rentre */
+        .visual-wrapper.dual-mode .product-img {
+            max-height: 140px;
+            max-width: 45%; 
+        }
+
+        .product-img.visible { opacity: 1; }
+        .product-img.hidden { display: none; }
 
         .visual-badge {
             position: absolute;
@@ -228,7 +250,7 @@
             display: none;
         }
 
-        /* --- SCHÉMA BÉTON --- */
+        /* --- SCHÉMAS --- */
         .schematic-wrapper {
             text-align: center;
             margin-bottom: 20px;
@@ -306,12 +328,11 @@
             font-size: 1.2rem;
         }
 
-        /* Styles spécifiques Béton */
-        #concrete-section .dim-input label {
-            color: var(--concrete-color);
-        }
+        /* Styles spécifiques Béton et Joint */
+        #concrete-section .dim-input label { color: var(--concrete-color); }
+        #joint-section .dim-input label { color: var(--joint-color); }
         
-        #concrete-section input {
+        #concrete-section input, #joint-section input {
             text-align: center;
             font-weight: 600;
         }
@@ -336,6 +357,11 @@
         .btn-calc.concrete-mode {
             background: linear-gradient(to right, #95a5a6, #7f8c8d);
             box-shadow: 0 6px 12px rgba(127, 140, 141, 0.3);
+        }
+        
+        .btn-calc.joint-mode {
+            background: linear-gradient(to right, #9b59b6, #8e44ad);
+            box-shadow: 0 6px 12px rgba(142, 68, 173, 0.3);
         }
 
         .btn-calc:active { transform: scale(0.98); }
@@ -416,6 +442,7 @@
         @media (max-width: 480px) {
             .logistics-option { flex-direction: column-reverse; text-align: center; }
             .logistics-visual img { width: 80px; margin-bottom: 15px; }
+            .main-type-btn { font-size: 0.8rem; padding: 10px 2px; }
         }
 
     </style>
@@ -436,13 +463,18 @@
     <div class="content">
         
         <div class="main-type-switcher">
-            <button class="main-type-btn active" id="btnMainMortar" onclick="switchMainType('mortar')">Calculatrice Mortier</button>
-            <button class="main-type-btn" id="btnMainConcrete" onclick="switchMainType('concrete')">Calculatrice Béton</button>
+            <button class="main-type-btn active" id="btnMainMortar" onclick="switchMainType('mortar')">Mortier</button>
+            <button class="main-type-btn" id="btnMainConcrete" onclick="switchMainType('concrete')">Béton</button>
+            <button class="main-type-btn" id="btnMainJoint" onclick="switchMainType('joint')">Joint</button>
         </div>
 
         <div id="product-visual-container">
             <div id="badge-coated" class="visual-badge">GAMME COATED - M10</div>
-            <img id="product-img" src="" alt="Sac de produit">
+            
+            <div class="visual-wrapper" id="visual-wrapper">
+                <img id="img-primary" class="product-img" src="" alt="Sac principal">
+                <img id="img-secondary" class="product-img hidden" src="" alt="Sac secondaire">
+            </div>
         </div>
 
         <div id="mortar-section">
@@ -595,6 +627,64 @@
             </p>
         </div>
 
+        <div id="joint-section" class="hidden-field">
+            
+            <div class="schematic-wrapper" style="border-color:#d2b4de;">
+                <svg viewBox="0 0 300 120" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="50" y="30" width="100" height="60" fill="#e74c3c" stroke="#c0392b" stroke-width="2" />
+                    <text x="100" y="65" font-family="Arial" font-size="12" fill="white" text-anchor="middle">PLAQUETTE</text>
+                    <rect x="150" y="30" width="20" height="60" fill="#95a5a6" opacity="0.5" />
+                    <rect x="170" y="30" width="60" height="60" fill="#e74c3c" stroke="#c0392b" stroke-width="2" />
+                    <line x1="150" y1="20" x2="170" y2="20" stroke="#8e44ad" stroke-width="2" />
+                    <text x="160" y="15" font-family="Arial" font-size="10" fill="#8e44ad" text-anchor="middle">Largeur Joint</text>
+                    <rect x="260" y="30" width="15" height="60" fill="#e74c3c" stroke="#c0392b" stroke-width="2" />
+                    <line x1="260" y1="100" x2="275" y2="100" stroke="#e67e22" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+                    <text x="268" y="115" font-family="Arial" font-size="10" fill="#e67e22" text-anchor="middle">Profond.</text>
+                </svg>
+                <p style="font-size:0.8rem; color:#8e44ad; margin-top:5px;">Indiquez les dimensions de la plaquette et <strong>la profondeur à remplir</strong> (épaisseur plaquette).</p>
+            </div>
+
+            <div class="form-group">
+                <label style="color:var(--joint-color);">1. Dimensions de la plaquette (mm)</label>
+                <div class="dims-grid">
+                    <div class="dim-input">
+                        <label>Longueur</label>
+                        <input type="number" id="jointL" placeholder="ex: 220">
+                    </div>
+                    <div class="dim-input">
+                        <label>Hauteur</label>
+                        <input type="number" id="jointH" placeholder="ex: 50">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="color:var(--joint-color);">2. Dimensions du joint (mm)</label>
+                <div class="dims-grid">
+                    <div class="dim-input">
+                        <label>Largeur Joint</label>
+                        <input type="number" id="jointW" value="10">
+                    </div>
+                    <div class="dim-input">
+                        <label style="color:#d35400; font-weight:800;">Profondeur</label>
+                        <input type="number" id="jointD" placeholder="ex: 15" style="border-color:#d35400;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="jointSurface">3. Surface Totale à jointer (m²)</label>
+                <input type="number" id="jointSurface" placeholder="Ex: 50">
+            </div>
+
+            <p style="font-size:0.9rem; color:#718096; margin-bottom:20px; background:#f3e5f5; padding:10px; border-radius:8px;">
+                <strong>Options :</strong> Le calcul est valable pour <strong>Biajoint</strong> ou <strong>Easy Joint</strong>.<br>
+                (Densité ref : 16,45 Litres pour 25 kg).
+            </p>
+
+        </div>
+
+
         <button id="btnAction" class="btn-calc" onclick="calculate()">CALCULER MA COMMANDE</button>
 
         <div id="result-card">
@@ -659,13 +749,15 @@
     const IMG_SAC_BIACOLOR = "sac_biacolor.jpg";
     const IMG_SAC_TERRE_CUITE = "sac_terrecuite.jpg";
     const IMG_SAC_BETON = "sac_tradibeton.jpg";
+    const IMG_SAC_BIAJOINT = "sac_biajoint.jpg";
+    const IMG_SAC_EASYJOINT = "sac_easyjoint.jpg";
 
     // ---------------------------------------------------------
     // 2. VARIABLES GLOBALES & DATA
     // ---------------------------------------------------------
-    let currentMainType = 'mortar'; 
+    let currentMainType = 'mortar'; // 'mortar', 'concrete', 'joint'
     let currentMortarMode = 'surface'; 
-    let currentConcreteMode = 'dims'; // 'dims' or 'vol'
+    let currentConcreteMode = 'dims'; 
 
     const db = {
         "GAMME BIACOLOR": {
@@ -751,24 +843,29 @@
     const customDiv = document.getElementById('custom-dimensions');
     const resultCard = document.getElementById('result-card');
     const jointInput = document.getElementById('targetJoint');
-    const productImg = document.getElementById('product-img');
+    
+    // Images Elements
     const visualContainer = document.getElementById('product-visual-container');
+    const visualWrapper = document.getElementById('visual-wrapper');
+    const imgPrimary = document.getElementById('img-primary');
+    const imgSecondary = document.getElementById('img-secondary');
+    
     const coatedAlert = document.getElementById('coated-alert');
     const coatedCheck = document.getElementById('isCoated');
     const badgeCoated = document.getElementById('badge-coated');
     
-    // Containers
-    const surfaceFields = document.getElementById('surface-fields');
-    const volumeFields = document.getElementById('volume-fields');
-    const btnSurface = document.getElementById('btnModeSurface');
-    const btnVolume = document.getElementById('btnModeVolume');
-    
-    // New Containers
+    // Containers Sections
     const mortarSection = document.getElementById('mortar-section');
     const concreteSection = document.getElementById('concrete-section');
+    const jointSection = document.getElementById('joint-section');
+    
+    // Buttons
     const btnMainMortar = document.getElementById('btnMainMortar');
     const btnMainConcrete = document.getElementById('btnMainConcrete');
+    const btnMainJoint = document.getElementById('btnMainJoint');
     const btnAction = document.getElementById('btnAction');
+    const btnSurface = document.getElementById('btnModeSurface');
+    const btnVolume = document.getElementById('btnModeVolume');
 
     // Init
     window.onload = function() {
@@ -787,24 +884,40 @@
         currentMainType = type;
         resultCard.style.display = 'none';
 
+        // Reset Buttons
+        btnMainMortar.classList.remove('active');
+        btnMainConcrete.classList.remove('active-concrete');
+        btnMainJoint.classList.remove('active-joint');
+        
+        // Hide all sections
+        mortarSection.classList.add('hidden-field');
+        concreteSection.classList.add('hidden-field');
+        jointSection.classList.add('hidden-field');
+        
+        // Reset classes btn action
+        btnAction.classList.remove('concrete-mode');
+        btnAction.classList.remove('joint-mode');
+
         if (type === 'mortar') {
             btnMainMortar.classList.add('active');
-            btnMainConcrete.classList.remove('active-concrete');
             mortarSection.classList.remove('hidden-field');
-            concreteSection.classList.add('hidden-field');
-            btnAction.classList.remove('concrete-mode');
             btnAction.innerText = "CALCULER MA COMMANDE";
             updateReferences(); 
 
-        } else {
-            // BETON
-            btnMainMortar.classList.remove('active');
+        } else if (type === 'concrete') {
             btnMainConcrete.classList.add('active-concrete');
-            mortarSection.classList.add('hidden-field');
             concreteSection.classList.remove('hidden-field');
             btnAction.classList.add('concrete-mode');
             btnAction.innerText = "CALCULER BÉTON";
             updateBagVisual(); 
+
+        } else {
+            // JOINT
+            btnMainJoint.classList.add('active-joint');
+            jointSection.classList.remove('hidden-field');
+            btnAction.classList.add('joint-mode');
+            btnAction.innerText = "CALCULER JOINT";
+            updateBagVisual();
         }
     }
 
@@ -812,15 +925,15 @@
         currentMortarMode = mode;
         resultCard.style.display = 'none';
         if (mode === 'surface') {
-            surfaceFields.classList.remove('hidden-field');
-            volumeFields.classList.add('hidden-field');
+            document.getElementById('surface-fields').classList.remove('hidden-field');
+            document.getElementById('volume-fields').classList.add('hidden-field');
             btnSurface.classList.add('active');
             btnVolume.classList.remove('active');
             referenceSelect.disabled = false;
             updateReferences(); 
         } else {
-            surfaceFields.classList.add('hidden-field');
-            volumeFields.classList.remove('hidden-field');
+            document.getElementById('surface-fields').classList.add('hidden-field');
+            document.getElementById('volume-fields').classList.remove('hidden-field');
             btnSurface.classList.remove('active');
             btnVolume.classList.add('active');
             referenceSelect.disabled = true;
@@ -831,7 +944,6 @@
     function switchConcreteMode(mode) {
         currentConcreteMode = mode;
         resultCard.style.display = 'none';
-        
         const dimsFields = document.getElementById('concrete-dims-fields');
         const volFields = document.getElementById('concrete-vol-fields');
         const btnDims = document.getElementById('btnConcreteDims');
@@ -851,7 +963,7 @@
     }
 
     function updateReferences() {
-        if (currentMainType === 'concrete') {
+        if (currentMainType !== 'mortar') {
             updateBagVisual();
             return;
         }
@@ -899,19 +1011,52 @@
         updateBagVisual();
     }
 
+    // ------------------------------------------------------------------
+    // FONCTION MISE A JOUR VISUELS (MODIFIÉE POUR DUAL)
+    // ------------------------------------------------------------------
     function updateBagVisual() {
         const isCoated = coatedCheck.checked;
-        productImg.classList.remove('visible'); 
         
+        // Reset states
+        imgPrimary.classList.remove('visible');
+        imgSecondary.classList.remove('visible');
+        imgSecondary.classList.add('hidden');
+        visualWrapper.classList.remove('dual-mode');
+
         // --- CAS BÉTON ---
         if (currentMainType === 'concrete') {
              setTimeout(() => {
-                productImg.src = IMG_SAC_BETON;
-                productImg.alt = "Sac Tradi Béton";
+                imgPrimary.src = IMG_SAC_BETON;
+                imgPrimary.alt = "Sac Tradi Béton";
                 visualContainer.style.backgroundColor = "#f0f2f5";
                 visualContainer.style.border = "1px solid #bdc3c7";
                 badgeCoated.style.display = "none";
-                productImg.classList.add('visible'); 
+                imgPrimary.classList.add('visible'); 
+             }, 100);
+             return;
+        }
+
+        // --- CAS JOINT (DUAL MODE) ---
+        if (currentMainType === 'joint') {
+             setTimeout(() => {
+                // Set images
+                imgPrimary.src = IMG_SAC_BIAJOINT;
+                imgPrimary.alt = "Sac Biajoint";
+                
+                imgSecondary.src = IMG_SAC_EASYJOINT;
+                imgSecondary.alt = "Sac Easy Joint";
+                
+                // Show both
+                imgSecondary.classList.remove('hidden');
+                visualWrapper.classList.add('dual-mode'); // CSS handles sizing
+
+                visualContainer.style.backgroundColor = "#f3e5f5";
+                visualContainer.style.border = "1px solid #8e44ad";
+                badgeCoated.style.display = "none";
+                
+                // Fade in
+                imgPrimary.classList.add('visible'); 
+                imgSecondary.classList.add('visible');
              }, 100);
              return;
         }
@@ -927,7 +1072,7 @@
 
         setTimeout(() => {
             if (selectedCatKey.includes("BIACOLOR") || isCoated) {
-                productImg.src = IMG_SAC_BIACOLOR;
+                imgPrimary.src = IMG_SAC_BIACOLOR;
                 visualContainer.style.backgroundColor = "#ebf8ff"; 
                 if (isCoated) {
                     badgeCoated.style.display = "block";
@@ -937,12 +1082,12 @@
                     visualContainer.style.border = "1px dashed #e2e8f0";
                 }
             } else if (selectedCatKey.includes("TERRE CUITE")) {
-                productImg.src = IMG_SAC_TERRE_CUITE;
+                imgPrimary.src = IMG_SAC_TERRE_CUITE;
                 visualContainer.style.backgroundColor = "#fff5f5";
                 badgeCoated.style.display = "none";
                 visualContainer.style.border = "1px dashed #e2e8f0";
             }
-            productImg.classList.add('visible'); 
+            imgPrimary.classList.add('visible'); 
         }, 100);
     }
 
@@ -998,45 +1143,82 @@
         let infoText = "";
 
         // ========================
-        // CALCUL : MODE BÉTON
+        // 1. MODE JOINT (NEW)
         // ========================
-        if (currentMainType === 'concrete') {
+        if (currentMainType === 'joint') {
+             const L_mm = parseFloat(document.getElementById('jointL').value);
+             const H_mm = parseFloat(document.getElementById('jointH').value);
+             const W_mm = parseFloat(document.getElementById('jointW').value); // Largeur joint
+             const D_mm = parseFloat(document.getElementById('jointD').value); // Profondeur (Epaisseur plaquette)
+             const Surf = parseFloat(document.getElementById('jointSurface').value);
+
+             if(!L_mm || !H_mm || !W_mm || !D_mm || !Surf) {
+                 alert("Veuillez remplir toutes les dimensions et la surface."); return;
+             }
+
+             // Conversion en Mètres
+             const L = L_mm / 1000;
+             const H = H_mm / 1000;
+             const W = W_mm / 1000; // largeur joint (espace)
+             const D = D_mm / 1000; // profondeur
+
+             // Surface d'une unité AVEC joint
+             const areaUnitWithJoint = (L + W) * (H + W);
+             const nbUnitsPerM2 = 1 / areaUnitWithJoint;
+             
+             // Surface réelle des plaquettes (SANS joint) sur 1 m2
+             const areaBricksOnly = nbUnitsPerM2 * (L * H);
+             
+             // Surface de joint (Vide) sur 1 m2
+             const areaJointOnly = 1 - areaBricksOnly;
+             
+             // Volume de joint sur 1 m2 (Surface Vide * Profondeur)
+             const volM3PerM2 = areaJointOnly * D;
+             
+             // Volume Total en Litres
+             const volTotalM3 = volM3PerM2 * Surf;
+             totalVolume = volTotalM3 * 1000; // Litres
+
+             // Poids : 1 sac (25kg) = 16.45 Litres
+             // 1 Litre = 25 / 16.45 = 1.5197 kg
+             const kgPerLiter = 25 / 16.45;
+             
+             totalMortarKg = totalVolume * kgPerLiter;
+             totalMortarKg = totalMortarKg * 1.05; // Marge sécurité 5%
+             
+             infoText = "Calcul basé sur le volume vide entre les plaquettes.<br>Densité : 1 Sac (25kg) = 16.45L.";
+             document.getElementById('brick-result-line').style.display = 'none';
+        }
+
+        // ========================
+        // 2. MODE BÉTON
+        // ========================
+        else if (currentMainType === 'concrete') {
             if (currentConcreteMode === 'dims') {
-                // Par Dimensions (cm)
                 const L_cm = parseFloat(document.getElementById('concL').value);
                 const W_cm = parseFloat(document.getElementById('concW').value);
                 const H_cm = parseFloat(document.getElementById('concH').value);
-
                 if (!L_cm || !W_cm || !H_cm) { alert("Veuillez remplir Longueur, Largeur et Épaisseur en cm."); return; }
-
-                totalVolume = (L_cm * W_cm * H_cm) / 1000; // cm3 -> Litres
-                
+                totalVolume = (L_cm * W_cm * H_cm) / 1000; 
             } else {
-                // Par Volume (m3 ou Litres)
                 let inputVal = parseFloat(document.getElementById('inputConcreteVol').value);
                 let unit = document.getElementById('unitConcreteVol').value;
-                
                 if (!inputVal || inputVal <= 0) { alert("Volume invalide."); return; }
-                
                 if (unit === 'm3') totalVolume = inputVal * 1000;
                 else totalVolume = inputVal;
             }
-
-            // Ratio : 1 sac (25kg) = 12 Litres
             const kgPerLiter = 25 / 12;
             totalMortarKg = totalVolume * kgPerLiter;
-            totalBricks = 0;
             infoText = "Calcul basé sur un rendement de 12 Litres de béton par sac de 25kg.";
-            
             document.getElementById('brick-result-line').style.display = 'none';
         } 
         
         // ========================
-        // CALCUL : MODE MORTIER
+        // 3. MODE MORTIER
         // ========================
         else {
             const catKey = categorySelect.value;
-            const litersPerKg = 16.34 / 25; // 0.6536 L/kg
+            const litersPerKg = 16.34 / 25; 
 
             if (currentMortarMode === 'surface') {
                 if (!catKey) { alert("Veuillez sélectionner une gamme."); return; }
@@ -1081,16 +1263,12 @@
                 document.getElementById('brick-result-line').style.display = 'block';
 
             } else {
-                // Mode Volume Mortier (Litres ou m3)
                 let volumeRaw = document.getElementById('inputMortarVol').value.replace(',', '.');
                 let unit = document.getElementById('unitMortarVol').value;
                 const inputVolume = parseFloat(volumeRaw);
-
                 if (isNaN(inputVolume) || inputVolume <= 0) { alert("Volume invalide."); return; }
-                
                 if (unit === 'm3') totalVolume = inputVolume * 1000;
                 else totalVolume = inputVolume;
-
                 totalMortarKg = totalVolume / litersPerKg;
                 infoText = `Calcul inversé basé sur le volume fourni.<br>Ratio: 1 Sac (25kg) ≈ 16.34L.`;
                 document.getElementById('brick-result-line').style.display = 'none';
