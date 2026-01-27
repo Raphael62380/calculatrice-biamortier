@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier & Béton V14</title>
+    <title>Calculatrice Biamortier & Béton V16</title>
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
             --primary-color: #004a99;
             --secondary-color: #f4f6f9;
             --accent-color: #e67e22;
-            --concrete-color: #7f8c8d; /* Nouvelle couleur pour le béton */
+            --concrete-color: #7f8c8d;
             --text-color: #2c3e50;
             --warning-bg: #fffbf0;
             --warning-border: #f6e05e;
@@ -69,7 +69,7 @@
             padding: 30px;
         }
 
-        /* --- MAIN TYPE SWITCHER (MORTIER vs BETON) --- */
+        /* --- MAIN TYPE SWITCHER --- */
         .main-type-switcher {
             display: flex;
             margin-bottom: 25px;
@@ -106,7 +106,7 @@
             border-bottom-color: var(--concrete-color);
         }
 
-        /* --- MODE SWITCHER (Surface/Volume Mortier) --- */
+        /* --- MODE SWITCHER (Onglets internes) --- */
         .mode-switcher {
             display: flex;
             background: #e2e8f0;
@@ -131,6 +131,13 @@
         .mode-btn.active {
             background: white;
             color: var(--primary-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        /* Variante pour le béton */
+        .mode-btn.concrete-active {
+            background: white;
+            color: var(--concrete-color);
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
@@ -162,6 +169,14 @@
             box-sizing: border-box;
             color: #2d3748;
         }
+
+        /* Input group pour volume + unité */
+        .input-with-unit {
+            display: flex;
+            gap: 10px;
+        }
+        .input-with-unit input { flex: 2; }
+        .input-with-unit select { flex: 1; background-color: #edf2f7; border-color: #cbd5e0; font-weight: bold; }
 
         select:disabled {
             background-color: #edf2f7;
@@ -213,6 +228,21 @@
             display: none;
         }
 
+        /* --- SCHÉMA BÉTON --- */
+        .schematic-wrapper {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+        }
+        .schematic-wrapper svg {
+            max-width: 100%;
+            height: auto;
+            max-height: 150px;
+        }
+
         /* --- ALERTE COATED --- */
         #coated-alert {
             display: none;
@@ -259,6 +289,8 @@
             font-size: 0.75rem;
             text-transform: uppercase;
             color: var(--accent-color);
+            margin-bottom: 5px;
+            display: block;
         }
         
         .joint-input-group {
@@ -277,6 +309,11 @@
         /* Styles spécifiques Béton */
         #concrete-section .dim-input label {
             color: var(--concrete-color);
+        }
+        
+        #concrete-section input {
+            text-align: center;
+            font-weight: 600;
         }
 
         .btn-calc {
@@ -410,8 +447,8 @@
 
         <div id="mortar-section">
             <div class="mode-switcher">
-                <button class="mode-btn active" id="btnModeSurface" onclick="switchMode('surface')">Par Surface (m²)</button>
-                <button class="mode-btn" id="btnModeVolume" onclick="switchMode('volume')">Par Volume (Litres)</button>
+                <button class="mode-btn active" id="btnModeSurface" onclick="switchMortarMode('surface')">Par Surface (m²)</button>
+                <button class="mode-btn" id="btnModeVolume" onclick="switchMortarMode('volume')">Par Volume</button>
             </div>
 
             <div class="form-group">
@@ -478,36 +515,86 @@
             
             <div id="volume-fields" class="hidden-field">
                 <div class="form-group">
-                    <label for="inputVolume">2. Volume de mortier souhaité (Litres)</label>
-                    <input type="number" id="inputVolume" placeholder="Ex: 500" min="1" step="any">
+                    <label>2. Volume de mortier souhaité</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="inputMortarVol" placeholder="Ex: 500" min="0.1" step="any">
+                        <select id="unitMortarVol">
+                            <option value="liters">Litres</option>
+                            <option value="m3">m³</option>
+                        </select>
+                    </div>
                     <p style="font-size:0.85rem; color:#718096; margin-top:5px;">
-                        Le calcul convertit les Litres en poids (Kg) pour déterminer le conditionnement.
+                        Le calcul convertit les m³ en Litres (1 m³ = 1000 L) puis en poids.
                     </p>
                 </div>
             </div>
         </div>
+
         <div id="concrete-section" class="hidden-field">
-            <div class="form-group">
-                <label>Dimensions de la zone à bétonner</label>
-                <div class="dims-grid">
-                    <div class="dim-input">
-                        <label>Longueur (m)</label>
-                        <input type="number" id="concL" placeholder="Ex: 4" step="any">
-                    </div>
-                    <div class="dim-input">
-                        <label>Largeur (m)</label>
-                        <input type="number" id="concW" placeholder="Ex: 3" step="any">
-                    </div>
-                    <div class="dim-input">
-                        <label>Épaisseur (cm)</label>
-                        <input type="number" id="concH" placeholder="Ex: 15" step="any">
+            
+            <div class="mode-switcher">
+                <button class="mode-btn concrete-active" id="btnConcreteDims" onclick="switchConcreteMode('dims')">Par Dimensions (cm)</button>
+                <button class="mode-btn" id="btnConcreteVol" onclick="switchConcreteMode('vol')">Par Volume</button>
+            </div>
+
+            <div id="concrete-dims-fields">
+                <div class="schematic-wrapper">
+                    <svg viewBox="0 0 300 160" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M50,60 L150,60 L220,30 L120,30 Z" fill="#ecf0f1" stroke="#7f8c8d" stroke-width="2"/>
+                        <path d="M50,60 L150,60 L150,110 L50,110 Z" fill="#bdc3c7" stroke="#7f8c8d" stroke-width="2"/>
+                        <path d="M150,60 L220,30 L220,80 L150,110 Z" fill="#95a5a6" stroke="#7f8c8d" stroke-width="2"/>
+                        <line x1="50" y1="125" x2="150" y2="125" stroke="#2c3e50" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+                        <text x="100" y="145" font-family="Arial" font-size="14" font-weight="bold" fill="#2c3e50" text-anchor="middle">LONGUEUR (L)</text>
+                        <line x1="230" y1="30" x2="230" y2="80" stroke="#2c3e50" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+                        <text x="235" y="60" font-family="Arial" font-size="14" font-weight="bold" fill="#2c3e50" dominant-baseline="middle">LARGEUR (l)</text>
+                        <line x1="35" y1="60" x2="35" y2="110" stroke="#e67e22" stroke-width="2" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+                        <text x="30" y="85" font-family="Arial" font-size="12" font-weight="bold" fill="#e67e22" text-anchor="end" dominant-baseline="middle">ÉP.</text>
+                        <defs>
+                            <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
+                                <path d="M0,0 L10,5 L0,10" fill="#2c3e50" />
+                            </marker>
+                        </defs>
+                    </svg>
+                    <p style="font-size:0.8rem; color:#7f8c8d; margin-top:5px;">Remplissez les 3 dimensions en <strong>centimètres</strong>.</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Dimensions de la dalle / semelle</label>
+                    <div class="dims-grid">
+                        <div class="dim-input">
+                            <label>Longueur (cm)</label>
+                            <input type="number" id="concL" placeholder="ex: 400" step="any">
+                        </div>
+                        <div class="dim-input">
+                            <label>Largeur (cm)</label>
+                            <input type="number" id="concW" placeholder="ex: 300" step="any">
+                        </div>
+                        <div class="dim-input">
+                            <label>Épaisseur (cm)</label>
+                            <input type="number" id="concH" placeholder="ex: 15" step="any">
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div id="concrete-vol-fields" class="hidden-field">
+                <div class="form-group">
+                    <label>Volume de béton souhaité</label>
+                    <div class="input-with-unit">
+                        <input type="number" id="inputConcreteVol" placeholder="Ex: 1.5" min="0.1" step="any">
+                        <select id="unitConcreteVol">
+                            <option value="m3" selected>m³</option>
+                            <option value="liters">Litres</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <p style="font-size:0.9rem; color:#718096; margin-bottom:20px; background:#f0f2f5; padding:10px; border-radius:8px;">
                 <strong>Info dosage :</strong> 1 sac de Tradi Béton (25kg) permet de réaliser environ <strong>12 Litres</strong> de béton gâché.
             </p>
         </div>
+
         <button id="btnAction" class="btn-calc" onclick="calculate()">CALCULER MA COMMANDE</button>
 
         <div id="result-card">
@@ -574,14 +661,12 @@
     const IMG_SAC_BETON = "sac_tradibeton.jpg";
 
     // ---------------------------------------------------------
-    // 2. VARIABLES GLOBALES
+    // 2. VARIABLES GLOBALES & DATA
     // ---------------------------------------------------------
-    let currentMainType = 'mortar'; // 'mortar' ou 'concrete'
-    let currentMortarMode = 'surface'; // 'surface' ou 'volume'
+    let currentMainType = 'mortar'; 
+    let currentMortarMode = 'surface'; 
+    let currentConcreteMode = 'dims'; // 'dims' or 'vol'
 
-    // ---------------------------------------------------------
-    // 3. DONNÉES TECHNIQUES (MORTIER)
-    // ---------------------------------------------------------
     const db = {
         "GAMME BIACOLOR": {
             items: [
@@ -696,7 +781,7 @@
     };
 
     // ---------------------------------------------------------
-    // 4. LOGIQUE DE CHANGEMENT DE TYPE (MORTIER / BETON)
+    // 3. LOGIQUE D'INTERACTION
     // ---------------------------------------------------------
     function switchMainType(type) {
         currentMainType = type;
@@ -705,56 +790,63 @@
         if (type === 'mortar') {
             btnMainMortar.classList.add('active');
             btnMainConcrete.classList.remove('active-concrete');
-            
             mortarSection.classList.remove('hidden-field');
             concreteSection.classList.add('hidden-field');
-            
             btnAction.classList.remove('concrete-mode');
             btnAction.innerText = "CALCULER MA COMMANDE";
-            
-            updateReferences(); // Rétablit l'image mortier
+            updateReferences(); 
 
         } else {
             // BETON
             btnMainMortar.classList.remove('active');
             btnMainConcrete.classList.add('active-concrete');
-            
             mortarSection.classList.add('hidden-field');
             concreteSection.classList.remove('hidden-field');
-            
             btnAction.classList.add('concrete-mode');
             btnAction.innerText = "CALCULER BÉTON";
-            
-            updateBagVisual(); // Affiche image béton
+            updateBagVisual(); 
         }
     }
 
-    // ---------------------------------------------------------
-    // 5. LOGIQUE DE CHANGEMENT DE MODE (SURFACE / VOLUME)
-    // ---------------------------------------------------------
-    function switchMode(mode) {
+    function switchMortarMode(mode) {
         currentMortarMode = mode;
         resultCard.style.display = 'none';
-
         if (mode === 'surface') {
             surfaceFields.classList.remove('hidden-field');
             volumeFields.classList.add('hidden-field');
-            
             btnSurface.classList.add('active');
             btnVolume.classList.remove('active');
-            
             referenceSelect.disabled = false;
             updateReferences(); 
-
         } else {
             surfaceFields.classList.add('hidden-field');
             volumeFields.classList.remove('hidden-field');
-            
             btnSurface.classList.remove('active');
             btnVolume.classList.add('active');
-            
             referenceSelect.disabled = true;
             coatedAlert.style.display = "none";
+        }
+    }
+    
+    function switchConcreteMode(mode) {
+        currentConcreteMode = mode;
+        resultCard.style.display = 'none';
+        
+        const dimsFields = document.getElementById('concrete-dims-fields');
+        const volFields = document.getElementById('concrete-vol-fields');
+        const btnDims = document.getElementById('btnConcreteDims');
+        const btnVol = document.getElementById('btnConcreteVol');
+
+        if (mode === 'dims') {
+            dimsFields.classList.remove('hidden-field');
+            volFields.classList.add('hidden-field');
+            btnDims.classList.add('concrete-active');
+            btnVol.classList.remove('concrete-active');
+        } else {
+            dimsFields.classList.add('hidden-field');
+            volFields.classList.remove('hidden-field');
+            btnDims.classList.remove('concrete-active');
+            btnVol.classList.add('concrete-active');
         }
     }
 
@@ -763,7 +855,6 @@
             updateBagVisual();
             return;
         }
-
         if (currentMortarMode === 'volume') {
             updateBagVisual();
             return;
@@ -772,9 +863,7 @@
         resultCard.style.display = 'none';
         const selectedCatKey = categorySelect.value;
         const categoryData = db[selectedCatKey];
-        
         coatedCheck.checked = false;
-        
         referenceSelect.innerHTML = '<option value="">-- Sélectionner dimensions --</option>';
         customDiv.style.display = 'none';
 
@@ -785,7 +874,6 @@
             } else {
                 coatedAlert.style.display = "none";
             }
-
             const defJoint = categoryData.items[0].jointRef; 
             jointInput.value = defJoint;
             
@@ -808,7 +896,6 @@
              referenceSelect.disabled = true;
              coatedAlert.style.display = "none";
         }
-        
         updateBagVisual();
     }
 
@@ -831,7 +918,6 @@
 
         // --- CAS MORTIER ---
         const selectedCatKey = categorySelect.value;
-        
         if (!selectedCatKey) {
              visualContainer.style.backgroundColor = "#f8fafc";
              visualContainer.style.border = "1px dashed #e2e8f0";
@@ -841,11 +927,8 @@
 
         setTimeout(() => {
             if (selectedCatKey.includes("BIACOLOR") || isCoated) {
-                // SAC BLEU/ROUGE
                 productImg.src = IMG_SAC_BIACOLOR;
-                productImg.alt = "Sac Biamortier Biacolor (M10)";
                 visualContainer.style.backgroundColor = "#ebf8ff"; 
-                
                 if (isCoated) {
                     badgeCoated.style.display = "block";
                     visualContainer.style.border = "2px solid #d69e2e";
@@ -853,11 +936,8 @@
                     badgeCoated.style.display = "none";
                     visualContainer.style.border = "1px dashed #e2e8f0";
                 }
-                
             } else if (selectedCatKey.includes("TERRE CUITE")) {
-                // SAC ROUGE
                 productImg.src = IMG_SAC_TERRE_CUITE;
-                productImg.alt = "Sac Spécial Brique";
                 visualContainer.style.backgroundColor = "#fff5f5";
                 badgeCoated.style.display = "none";
                 visualContainer.style.border = "1px dashed #e2e8f0";
@@ -909,7 +989,7 @@
     }
 
     // ---------------------------------------------------------
-    // 6. FONCTION CALCUL PRINCIPALE
+    // 4. FONCTION CALCUL PRINCIPALE
     // ---------------------------------------------------------
     function calculate() {
         let totalMortarKg = 0;
@@ -921,20 +1001,30 @@
         // CALCUL : MODE BÉTON
         // ========================
         if (currentMainType === 'concrete') {
-            const L = parseFloat(document.getElementById('concL').value);
-            const W = parseFloat(document.getElementById('concW').value);
-            const H_cm = parseFloat(document.getElementById('concH').value);
+            if (currentConcreteMode === 'dims') {
+                // Par Dimensions (cm)
+                const L_cm = parseFloat(document.getElementById('concL').value);
+                const W_cm = parseFloat(document.getElementById('concW').value);
+                const H_cm = parseFloat(document.getElementById('concH').value);
 
-            if (!L || !W || !H_cm) { alert("Veuillez remplir Longueur, Largeur et Épaisseur."); return; }
+                if (!L_cm || !W_cm || !H_cm) { alert("Veuillez remplir Longueur, Largeur et Épaisseur en cm."); return; }
 
-            const volM3 = L * W * (H_cm / 100);
-            totalVolume = volM3 * 1000; // en Litres
-            
+                totalVolume = (L_cm * W_cm * H_cm) / 1000; // cm3 -> Litres
+                
+            } else {
+                // Par Volume (m3 ou Litres)
+                let inputVal = parseFloat(document.getElementById('inputConcreteVol').value);
+                let unit = document.getElementById('unitConcreteVol').value;
+                
+                if (!inputVal || inputVal <= 0) { alert("Volume invalide."); return; }
+                
+                if (unit === 'm3') totalVolume = inputVal * 1000;
+                else totalVolume = inputVal;
+            }
+
             // Ratio : 1 sac (25kg) = 12 Litres
-            // Donc 1 Litre = 25 / 12 = 2.0833 kg
             const kgPerLiter = 25 / 12;
             totalMortarKg = totalVolume * kgPerLiter;
-            
             totalBricks = 0;
             infoText = "Calcul basé sur un rendement de 12 Litres de béton par sac de 25kg.";
             
@@ -991,19 +1081,23 @@
                 document.getElementById('brick-result-line').style.display = 'block';
 
             } else {
-                // Mode Volume Mortier
-                let volumeRaw = document.getElementById('inputVolume').value.replace(',', '.');
+                // Mode Volume Mortier (Litres ou m3)
+                let volumeRaw = document.getElementById('inputMortarVol').value.replace(',', '.');
+                let unit = document.getElementById('unitMortarVol').value;
                 const inputVolume = parseFloat(volumeRaw);
-                if (isNaN(inputVolume) || inputVolume <= 0) { alert("Volume invalide."); return; }
 
-                totalVolume = inputVolume;
-                totalMortarKg = inputVolume / litersPerKg;
+                if (isNaN(inputVolume) || inputVolume <= 0) { alert("Volume invalide."); return; }
+                
+                if (unit === 'm3') totalVolume = inputVolume * 1000;
+                else totalVolume = inputVolume;
+
+                totalMortarKg = totalVolume / litersPerKg;
                 infoText = `Calcul inversé basé sur le volume fourni.<br>Ratio: 1 Sac (25kg) ≈ 16.34L.`;
                 document.getElementById('brick-result-line').style.display = 'none';
             }
         }
 
-        // --- AFFICHAGE RESULTATS COMMUN ---
+        // --- AFFICHAGE RESULTATS ---
         const bigBagSol = solveBigBags(totalMortarKg);
         const palletSol = solvePallets(totalMortarKg);
 
@@ -1031,7 +1125,6 @@
         document.getElementById('nbPallets').innerText = palletSol.pallets;
         document.getElementById('nbExtraBags').innerText = palletSol.extraBags;
         document.getElementById('totalBagsCount').innerText = palletSol.totalBags;
-        
         document.getElementById('tech-info-text').innerHTML = infoText;
 
         resultCard.style.display = 'block';
