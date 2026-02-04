@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier V23</title>
+    <title>Calculatrice Biamortier V25 (Data CSV)</title>
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
@@ -229,7 +229,6 @@
         }
         
         /* --- REGLAGE FIN DES TAILLES (DUAL MODE) --- */
-        /* Ici vous pouvez changer la valeur 'height' pour équilibrer les sacs */
         
         .visual-wrapper.dual-mode #img-primary {
             /* Sac de Gauche (Biajoint) */
@@ -241,7 +240,7 @@
 
         .visual-wrapper.dual-mode #img-secondary {
             /* Sac de Droite (Easy Joint) */
-            height: 135px; /* <--- Augmentez ce chiffre si Easy Joint parait trop petit (ex: 155px) */
+            height: 135px;
             width: auto;
             max-width: 48%;
             object-fit: contain;
@@ -770,9 +769,9 @@
     const IMG_SAC_EASYJOINT = "sac_easyjoint.png";
 
     // ---------------------------------------------------------
-    // 2. VARIABLES GLOBALES & DATA
+    // 2. VARIABLES GLOBALES & DATA (MISE A JOUR CSV)
     // ---------------------------------------------------------
-    let currentMainType = 'mortar'; // 'mortar', 'concrete', 'joint'
+    let currentMainType = 'mortar'; 
     let currentMortarMode = 'surface'; 
     let currentConcreteMode = 'dims'; 
 
@@ -786,8 +785,8 @@
                 { name: "4x19x39", weightM2: 6, bricksM2: 12.50, loss: "30", jointRef: 10 },
                 { name: "9x19x24", weightM2: 73, bricksM2: 40.00, loss: "80", jointRef: 10 },
                 { name: "6x22x22", weightM2: 112, bricksM2: 62.11, loss: "80", jointRef: 10 },
-                { name: "6x10,5x22", weightM2: 39, bricksM2: 62.11, loss: "30", jointRef: 10 },
-                { name: "5,6x9,3x19", weightM2: 37, bricksM2: 75.76, loss: "30", jointRef: 10 },
+                { name: "6x10,5x22", weightM2: 39, weightDoubleM2: 90, bricksM2: 62.11, loss: "30", jointRef: 10 },
+                { name: "5,6x9,3x19", weightM2: 37, weightDoubleM2: 87, bricksM2: 75.76, loss: "30", jointRef: 10 },
                 { name: "6x2x22 (Plaquette)", weightM2: 8, bricksM2: 62.11, loss: "35", jointRef: 10 },
                 { name: "6,5x2x21,5 (Plaquette)", weightM2: 9, bricksM2: 57.21, loss: "35", jointRef: 10 }
             ],
@@ -795,20 +794,20 @@
         },
         "TERRE CUITE (Pleines)": {
             items: [
-                { name: "6x10,5x22", weightM2: 47, bricksM2: 59.87, loss: "35", jointRef: 12 },
+                { name: "6x10,5x22", weightM2: 47, weightDoubleM2: 110, bricksM2: 59.87, loss: "35", jointRef: 12 },
                 { name: "6x22x22", weightM2: 98, bricksM2: 59.87, loss: "35", jointRef: 12 },
-                { name: "5x9x19", weightM2: 46, bricksM2: 79.85, loss: "35", jointRef: 12 },
-                { name: "6,5x9x19", weightM2: 40, bricksM2: 64.29, loss: "35", jointRef: 12 },
-                { name: "9x9x19", weightM2: 33, bricksM2: 48.53, loss: "35", jointRef: 12 },
-                { name: "4x10x21", weightM2: 58, bricksM2: 86.63, loss: "35", jointRef: 12 },
-                { name: "5x10x21", weightM2: 51, bricksM2: 72.65, loss: "35", jointRef: 12 },
-                { name: "6,5x10x21", weightM2: 43, bricksM2: 58.50, loss: "35", jointRef: 12 },
-                { name: "4x9x24", weightM2: 51, bricksM2: 76.31, loss: "35", jointRef: 12 },
-                { name: "5x9x24", weightM2: 45, bricksM2: 64.00, loss: "35", jointRef: 12 },
-                { name: "4x9x29", weightM2: 50, bricksM2: 63.68, loss: "35", jointRef: 12 },
-                { name: "5x9x29", weightM2: 43, bricksM2: 53.41, loss: "35", jointRef: 12 },
-                { name: "6x9x29", weightM2: 38, bricksM2: 45.99, loss: "35", jointRef: 12 },
-                { name: "5x10,5x21", weightM2: 53, bricksM2: 72.65, loss: "35", jointRef: 12 }
+                { name: "5x9x19", weightM2: 46, weightDoubleM2: 109, bricksM2: 79.85, loss: "35", jointRef: 12 },
+                { name: "6,5x9x19", weightM2: 40, weightDoubleM2: 93, bricksM2: 64.29, loss: "35", jointRef: 12 },
+                { name: "9x9x19", weightM2: 33, weightDoubleM2: 77, bricksM2: 48.53, loss: "35", jointRef: 12 },
+                { name: "4x10x21", weightM2: 58, weightDoubleM2: 136, bricksM2: 86.63, loss: "35", jointRef: 12 },
+                { name: "5x10x21", weightM2: 51, weightDoubleM2: 119, bricksM2: 72.65, loss: "35", jointRef: 12 },
+                { name: "6,5x10x21", weightM2: 43, weightDoubleM2: 101, bricksM2: 58.50, loss: "35", jointRef: 12 },
+                { name: "4x9x24", weightM2: 51, weightDoubleM2: 120, bricksM2: 76.31, loss: "35", jointRef: 12 },
+                { name: "5x9x24", weightM2: 45, weightDoubleM2: 104, bricksM2: 64.00, loss: "35", jointRef: 12 },
+                { name: "4x9x29", weightM2: 50, weightDoubleM2: 118, bricksM2: 63.68, loss: "35", jointRef: 12 },
+                { name: "5x9x29", weightM2: 43, weightDoubleM2: 102, bricksM2: 53.41, loss: "35", jointRef: 12 },
+                { name: "6x9x29", weightM2: 38, weightDoubleM2: 90, bricksM2: 45.99, loss: "35", jointRef: 12 },
+                { name: "5x10,5x21", weightM2: 53, weightDoubleM2: 124, bricksM2: 72.65, loss: "35", jointRef: 12 }
             ],
             allowCustom: true,
             densityFactor: 2120,
@@ -816,17 +815,17 @@
         },
         "TERRE CUITE (Perforées)": {
             items: [
-                { name: "6x10,5x22", weightM2: 69, bricksM2: 59.87, loss: "100", jointRef: 12 },
+                { name: "6x10,5x22", weightM2: 69, weightDoubleM2: 163, bricksM2: 59.87, loss: "100", jointRef: 12 },
                 { name: "6x22x22", weightM2: 145, bricksM2: 59.87, loss: "100", jointRef: 12 },
-                { name: "9x9x29", weightM2: 43, bricksM2: 32.46, loss: "100", jointRef: 12 },
-                { name: "14x9x29", weightM2: 33, bricksM2: 21.78, loss: "100", jointRef: 12 },
-                { name: "19x9x29", weightM2: 28, bricksM2: 16.39, loss: "100", jointRef: 12 },
-                { name: "9x14x19", weightM2: 75, bricksM2: 48.53, loss: "100", jointRef: 12 },
-                { name: "14x14x29", weightM2: 51, bricksM2: 21.78, loss: "100", jointRef: 12 },
-                { name: "19x14x29", weightM2: 43, bricksM2: 16.39, loss: "100", jointRef: 12 },
-                { name: "9x19x29", weightM2: 91, bricksM2: 32.46, loss: "100", jointRef: 12 },
-                { name: "14x19x29", weightM2: 69, bricksM2: 21.78, loss: "100", jointRef: 12 },
-                { name: "19x19x29", weightM2: 58, bricksM2: 16.39, loss: "100", jointRef: 12 }
+                { name: "9x9x29", weightM2: 43, weightDoubleM2: 102, bricksM2: 32.46, loss: "100", jointRef: 12 },
+                { name: "14x9x29", weightM2: 33, weightDoubleM2: 77, bricksM2: 21.78, loss: "100", jointRef: 12 },
+                { name: "19x9x29", weightM2: 28, weightDoubleM2: 65, bricksM2: 16.39, loss: "100", jointRef: 12 },
+                { name: "9x14x19", weightM2: 75, weightDoubleM2: 176, bricksM2: 48.53, loss: "100", jointRef: 12 },
+                { name: "14x14x29", weightM2: 51, weightDoubleM2: 120, bricksM2: 21.78, loss: "100", jointRef: 12 },
+                { name: "19x14x29", weightM2: 43, weightDoubleM2: 100, bricksM2: 16.39, loss: "100", jointRef: 12 },
+                { name: "9x19x29", weightM2: 91, weightDoubleM2: 214, bricksM2: 32.46, loss: "100", jointRef: 12 },
+                { name: "14x19x29", weightM2: 69, weightDoubleM2: 162, bricksM2: 21.78, loss: "100", jointRef: 12 },
+                { name: "19x19x29", weightM2: 58, weightDoubleM2: 136, bricksM2: 16.39, loss: "100", jointRef: 12 }
             ],
             allowCustom: true,
             densityFactor: 3150,
@@ -834,19 +833,19 @@
         },
         "TERRE CUITE (Avec Cuvettes)": {
             items: [
-                { name: "6x10,5x22", weightM2: 61, bricksM2: 59.87, loss: "75", jointRef: 12 },
-                { name: "5x9x19", weightM2: 60, bricksM2: 79.85, loss: "75", jointRef: 12 },
-                { name: "6,5x9x19", weightM2: 51, bricksM2: 64.29, loss: "75", jointRef: 12 },
-                { name: "9x9x19", weightM2: 42, bricksM2: 48.53, loss: "75", jointRef: 12 },
-                { name: "4x10x21", weightM2: 75, bricksM2: 86.63, loss: "75", jointRef: 12 },
-                { name: "5x10x21", weightM2: 65, bricksM2: 72.65, loss: "75", jointRef: 12 },
-                { name: "6,5x10x21", weightM2: 56, bricksM2: 58.50, loss: "75", jointRef: 12 },
-                { name: "4x9x24", weightM2: 66, bricksM2: 76.31, loss: "75", jointRef: 12 },
-                { name: "5x9x24", weightM2: 58, bricksM2: 64.00, loss: "75", jointRef: 12 },
-                { name: "4x9x29", weightM2: 65, bricksM2: 63.68, loss: "75", jointRef: 12 },
-                { name: "5x9x29", weightM2: 56, bricksM2: 53.41, loss: "75", jointRef: 12 },
-                { name: "6x9x29", weightM2: 50, bricksM2: 45.99, loss: "75", jointRef: 12 },
-                { name: "5x10,5x21", weightM2: 69, bricksM2: 72.65, loss: "75", jointRef: 12 }
+                { name: "6x10,5x22", weightM2: 61, weightDoubleM2: 143, bricksM2: 59.87, loss: "75", jointRef: 12 },
+                { name: "5x9x19", weightM2: 60, weightDoubleM2: 141, bricksM2: 79.85, loss: "75", jointRef: 12 },
+                { name: "6,5x9x19", weightM2: 51, weightDoubleM2: 120, bricksM2: 64.29, loss: "75", jointRef: 12 },
+                { name: "9x9x19", weightM2: 42, weightDoubleM2: 99, bricksM2: 48.53, loss: "75", jointRef: 12 },
+                { name: "4x10x21", weightM2: 75, weightDoubleM2: 176, bricksM2: 86.63, loss: "75", jointRef: 12 },
+                { name: "5x10x21", weightM2: 65, weightDoubleM2: 154, bricksM2: 72.65, loss: "75", jointRef: 12 },
+                { name: "6,5x10x21", weightM2: 56, weightDoubleM2: 131, bricksM2: 58.50, loss: "75", jointRef: 12 },
+                { name: "4x9x24", weightM2: 66, weightDoubleM2: 156, bricksM2: 76.31, loss: "75", jointRef: 12 },
+                { name: "5x9x24", weightM2: 58, weightDoubleM2: 135, bricksM2: 64.00, loss: "75", jointRef: 12 },
+                { name: "4x9x29", weightM2: 65, weightDoubleM2: 152, bricksM2: 63.68, loss: "75", jointRef: 12 },
+                { name: "5x9x29", weightM2: 56, weightDoubleM2: 132, bricksM2: 53.41, loss: "75", jointRef: 12 },
+                { name: "6x9x29", weightM2: 50, weightDoubleM2: 117, bricksM2: 45.99, loss: "75", jointRef: 12 },
+                { name: "5x10,5x21", weightM2: 69, weightDoubleM2: 161, bricksM2: 72.65, loss: "75", jointRef: 12 }
             ],
             allowCustom: true,
             densityFactor: 2750,
@@ -1242,8 +1241,22 @@
                 if (refValue !== "custom") {
                     const product = catData.items[refValue];
                     let ratio = targetJoint / product.jointRef;
-                    calculatedWeightM2 = Math.ceil(product.weightM2 * ratio);
+                    
+                    // --- LOGIQUE MUR DOUBLE VIA CSV ---
+                    let baseWeight = product.weightM2;
+                    
+                    if (isDouble) {
+                        if (product.weightDoubleM2) {
+                            baseWeight = product.weightDoubleM2;
+                        } else {
+                            // Fallback si la donnée manque dans le CSV (ex: 6x22x22 perforée)
+                            baseWeight = product.weightM2 * 2;
+                        }
+                    }
+
+                    calculatedWeightM2 = Math.ceil(baseWeight * ratio);
                     calculatedBricksM2 = product.bricksM2;
+
                 } else {
                     const L_mm = parseFloat(document.getElementById('custL').value);
                     const W_mm = parseFloat(document.getElementById('custW').value);
@@ -1255,9 +1268,11 @@
                     const surfJoint = 1 - (calculatedBricksM2 * L * H);
                     const volJoint = surfJoint * W;
                     calculatedWeightM2 = Math.ceil(volJoint * catData.densityFactor);
+                    
+                    // Pour le custom, on garde le x2 par défaut car pas de data spécifique
+                    if (isDouble) calculatedWeightM2 *= 2;
                 }
 
-                if (isDouble) calculatedWeightM2 *= 2;
                 totalMortarKg = calculatedWeightM2 * surface;
                 totalBricks = Math.ceil(calculatedBricksM2 * surface * (isDouble ? 2 : 1));
                 totalVolume = totalMortarKg * litersPerKg;
