@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier V26 (Usage & Logistique)</title>
+    <title>Calculatrice Biamortier V28 (Formulaire Contact)</title>
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
@@ -12,6 +12,7 @@
             --accent-color: #e67e22;
             --concrete-color: #7f8c8d;
             --joint-color: #8e44ad;
+            --email-color: #27ae60;
             --text-color: #2c3e50;
             --warning-bg: #fffbf0;
             --warning-border: #f6e05e;
@@ -375,8 +376,58 @@
             background: linear-gradient(to right, #9b59b6, #8e44ad);
             box-shadow: 0 6px 12px rgba(142, 68, 173, 0.3);
         }
+        
+        /* STYLE BOUTON EMAIL */
+        .btn-email {
+            width: 100%;
+            background: linear-gradient(to right, #27ae60, #2ecc71);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 25px;
+            box-shadow: 0 6px 12px rgba(46, 204, 113, 0.3);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-email:hover {
+            background: linear-gradient(to right, #219150, #27ae60);
+            transform: translateY(-2px);
+        }
+        .btn-email svg {
+            fill: white;
+            width: 24px;
+            height: 24px;
+        }
 
         .btn-calc:active { transform: scale(0.98); }
+
+        /* CONTACT FORM STYLE */
+        .contact-form-wrapper {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: left;
+        }
+        .contact-form-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .required-star { color: #e74c3c; margin-left:3px; }
 
         /* RESULTATS */
         #result-card {
@@ -448,7 +499,6 @@
             font-style: italic; background: #edf2f7; padding: 10px; border-radius: 8px;
         }
         
-        /* NEW: Style pour la description d'usage Joint */
         #joint-usage-desc {
             margin-top: 10px;
             font-size: 0.9rem;
@@ -776,6 +826,37 @@
                 <div class="technical-info" id="tech-info-text">
                     Calcul technique inclus.
                 </div>
+
+                <div class="contact-form-wrapper">
+                    <div class="contact-form-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="#2d3748">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                        Vos coordonnées pour le devis
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label for="userCompany">Nom de l'entreprise <span class="required-star">*</span></label>
+                        <input type="text" id="userCompany" placeholder="Ex: Maçonnerie Durand" style="padding:10px; font-size:0.9rem;">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label for="userContact">Nom du contact <span class="required-star">*</span></label>
+                        <input type="text" id="userContact" placeholder="Ex: Jean Dupont" style="padding:10px; font-size:0.9rem;">
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom:0;">
+                        <label for="userRef">Référence Chantier</label>
+                        <input type="text" id="userRef" placeholder="Ex: Résidence Les Lilas" style="padding:10px; font-size:0.9rem;">
+                    </div>
+                </div>
+
+                <button class="btn-email" onclick="sendQuoteEmail()">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                    </svg>
+                    DEMANDER UN DEVIS PAR EMAIL
+                </button>
             </div>
         </div>
     </div>
@@ -792,7 +873,7 @@
     const IMG_SAC_EASYJOINT = "sac_easyjoint.png";
 
     // ---------------------------------------------------------
-    // 2. VARIABLES GLOBALES & DATA (MISE A JOUR CSV)
+    // 2. VARIABLES GLOBALES & DATA
     // ---------------------------------------------------------
     let currentMainType = 'mortar'; 
     let currentMortarMode = 'surface'; 
@@ -1145,7 +1226,6 @@
         }
     }
     
-    // NEW: Update Text description on Joint type change
     function updateJointInfo() {
         resultCard.style.display='none';
         const type = document.getElementById('jointProductType').value;
@@ -1159,7 +1239,6 @@
     }
 
     // --- ALGORITHMES LOGISTIQUES ---
-    // Update : Added maxBagSize constraint for Easy Joint logic
     function solveBigBags(weight, maxBagSize = 1400) {
         let remaining = weight;
         let solution = { 1400: 0, 1000: 0, 700: 0 };
@@ -1400,6 +1479,111 @@
 
         resultCard.style.display = 'block';
         resultCard.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // ---------------------------------------------------------
+    // 5. FONCTION MAIL DEVIS (MISE A JOUR V28)
+    // ---------------------------------------------------------
+    function sendQuoteEmail() {
+        // --- VALIDATION DU FORMULAIRE DE CONTACT ---
+        const company = document.getElementById('userCompany').value.trim();
+        const contact = document.getElementById('userContact').value.trim();
+        const refChantier = document.getElementById('userRef').value.trim();
+
+        if (!company || !contact) {
+            alert("Veuillez renseigner le nom de l'entreprise et le nom du contact avant d'envoyer la demande.");
+            // On scroll vers le formulaire pour aider l'utilisateur
+            document.querySelector('.contact-form-wrapper').scrollIntoView({behavior: 'smooth'});
+            return; // Stop function here
+        }
+
+        // 1. Récupération des données du calcul affiché
+        const totalWeight = document.getElementById('totalWeight').innerText;
+        const totalVolume = document.getElementById('totalVolume').innerText;
+        const totalPallets = document.getElementById('nbPallets').innerText;
+        const totalBags = document.getElementById('totalBagsCount').innerText;
+        
+        // 2. Construction du détail Produit
+        let productDetails = "";
+        let subjectRef = `Demande de prix - ${company}`; // Ajout Nom Entreprise dans objet
+
+        if(currentMainType === 'concrete') {
+            subjectRef += " - Tradi Béton";
+            productDetails = "Produit : Tradi Béton (Sac 25kg)\n";
+            if(currentConcreteMode === 'dims') {
+                const L = document.getElementById('concL').value;
+                const W = document.getElementById('concW').value;
+                const H = document.getElementById('concH').value;
+                productDetails += `Dimensions Dalle : ${L} x ${W} x ${H} cm\n`;
+            } else {
+                productDetails += `Volume souhaité : ${document.getElementById('inputConcreteVol').value} ${document.getElementById('unitConcreteVol').value}\n`;
+            }
+
+        } else if(currentMainType === 'joint') {
+            const productType = document.getElementById('jointProductType').value;
+            const formattedProduct = (productType === 'biajoint') ? 'BIAJOINT' : 'EASY JOINT';
+            const surface = document.getElementById('jointSurface').value;
+            
+            subjectRef += ` - ${formattedProduct}`;
+            productDetails = `Produit : ${formattedProduct}\n`;
+            productDetails += `Surface à jointer : ${surface} m²\n`;
+            productDetails += `Dimensions plaquette : ${document.getElementById('jointL').value}x${document.getElementById('jointH').value} mm\n`;
+            productDetails += `Joint : ${document.getElementById('jointW').value}mm (Largeur) x ${document.getElementById('jointD').value}mm (Profondeur)\n`;
+
+        } else {
+            // Mortier
+            const cat = categorySelect.value;
+            const refIndex = referenceSelect.value;
+            let refName = "Inconnue";
+            
+            if(refIndex === "custom") {
+                refName = "Sur mesure";
+            } else if (cat && db[cat] && db[cat].items[refIndex]) {
+                refName = db[cat].items[refIndex].name;
+            }
+
+            const surface = document.getElementById('surface').value;
+            const isCoated = document.getElementById('isCoated').checked;
+            const prodName = isCoated ? "Biamortier M10 (Coated)" : "Biamortier Standard";
+
+            subjectRef += ` - ${prodName}`;
+            productDetails = `Produit : ${prodName}\n`;
+            productDetails += `Gamme : ${cat}\n`;
+            productDetails += `Format Brique : ${refName}\n`;
+            if(currentMortarMode === 'surface') {
+                productDetails += `Surface mur : ${surface} m²\n`;
+            } else {
+                productDetails += `Volume brut demandé.\n`;
+            }
+        }
+
+        // 3. Construction du Corps du mail (AVEC INFO CONTACT)
+        const emailBody = `Bonjour BIAL Industrie,\n\n` +
+            `Voici une demande de prix pour le chantier suivant :\n\n` +
+            `==============================\n` +
+            `COORDONNÉES CLIENT\n` +
+            `==============================\n` +
+            `Entreprise : ${company}\n` +
+            `Contact : ${contact}\n` +
+            `Référence Chantier : ${refChantier}\n\n` +
+            `==============================\n` +
+            `DÉTAILS TECHNIQUES\n` +
+            `==============================\n` +
+            `${productDetails}\n` +
+            `--- QUANTITÉS ESTIMÉES ---\n` +
+            `Poids Total : ${totalWeight} kg\n` +
+            `(Volume approx. : ${totalVolume} Litres)\n\n` +
+            `--- CONDITIONNEMENT SOUHAITÉ ---\n` +
+            `Si Palettisé : ${totalPallets} palettes (Total ${totalBags} sacs)\n` +
+            `Si Vrac : Voir détail Big Bags selon disponibilité.\n\n` +
+            `Merci de me recontacter pour finaliser cette demande.\n\n` +
+            `Cordialement,`;
+
+        // 4. Encodage et Ouverture
+        const destination = "contact@biallais.fr"; 
+        const mailtoLink = `mailto:${destination}?subject=${encodeURIComponent(subjectRef)}&body=${encodeURIComponent(emailBody)}`;
+        
+        window.location.href = mailtoLink;
     }
 </script>
 
