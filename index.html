@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier V28 (Formulaire Contact)</title>
+    <title>Calculatrice Biamortier V29 (Détail complet Mail)</title>
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
@@ -1482,7 +1482,7 @@
     }
     
     // ---------------------------------------------------------
-    // 5. FONCTION MAIL DEVIS (MISE A JOUR V28)
+    // 5. FONCTION MAIL DEVIS (MISE A JOUR V29)
     // ---------------------------------------------------------
     function sendQuoteEmail() {
         // --- VALIDATION DU FORMULAIRE DE CONTACT ---
@@ -1498,14 +1498,37 @@
         }
 
         // 1. Récupération des données du calcul affiché
-        const totalWeight = document.getElementById('totalWeight').innerText;
+        const totalWeightText = document.getElementById('totalWeight').innerText; // Chaine affichée (ex: "1 200")
         const totalVolume = document.getElementById('totalVolume').innerText;
         const totalPallets = document.getElementById('nbPallets').innerText;
         const totalBags = document.getElementById('totalBagsCount').innerText;
         
+        // --- RE-CALCUL PRÉCIS POUR LES BIG BAGS DANS LE MAIL ---
+        // On nettoie la chaine pour récupérer un nombre (supprime espaces et virgules)
+        let weightVal = parseFloat(totalWeightText.replace(/\s/g, '').replace(',', '.'));
+        
+        // Détermination limite sac (Même logique que calculate())
+        let maxBB = 1400;
+        if(currentMainType === 'joint' && document.getElementById('jointProductType').value === 'easyjoint') {
+            maxBB = 1000;
+        }
+
+        // Appel de la fonction de calcul BigBag
+        let bbSol = solveBigBags(weightVal, maxBB);
+        
+        // Construction du texte Big Bag pour le mail
+        let bbDetails = "";
+        let hasBB = false;
+        if(bbSol[1400] > 0) { bbDetails += `- ${bbSol[1400]} Big Bag(s) de 1400kg\n`; hasBB = true; }
+        if(bbSol[1000] > 0) { bbDetails += `- ${bbSol[1000]} Big Bag(s) de 1000kg\n`; hasBB = true; }
+        if(bbSol[700] > 0)  { bbDetails += `- ${bbSol[700]} Big Bag(s) de 700kg\n`; hasBB = true; }
+        
+        if(!hasBB) bbDetails = "- Quantité insuffisante pour du vrac\n";
+        // ------------------------------------------------------
+
         // 2. Construction du détail Produit
         let productDetails = "";
-        let subjectRef = `Demande de prix - ${company}`; // Ajout Nom Entreprise dans objet
+        let subjectRef = `Demande de prix - ${company}`; 
 
         if(currentMainType === 'concrete') {
             subjectRef += " - Tradi Béton";
@@ -1557,7 +1580,7 @@
             }
         }
 
-        // 3. Construction du Corps du mail (AVEC INFO CONTACT)
+        // 3. Construction du Corps du mail (AVEC DEUX OPTIONS CLAIRES)
         const emailBody = `Bonjour BIALLAIS Industries,\n\n` +
             `Voici une demande de prix pour le chantier suivant :\n\n` +
             `==============================\n` +
@@ -1571,11 +1594,18 @@
             `==============================\n` +
             `${productDetails}\n` +
             `--- QUANTITÉS ESTIMÉES ---\n` +
-            `Poids Total : ${totalWeight} kg\n` +
+            `Poids Total : ${totalWeightText} kg\n` +
             `(Volume approx. : ${totalVolume} Litres)\n\n` +
-            `--- CONDITIONNEMENT SOUHAITÉ ---\n` +
-            `Si Palettisé : ${totalPallets} palettes (Total ${totalBags} sacs)\n` +
-            `Si Vrac : Voir détail Big Bags selon disponibilité.\n\n` +
+            `==============================\n` +
+            `CONDITIONNEMENT SOUHAITÉ\n` +
+            `==============================\n` +
+            `Merci de chiffrer l'une ou les deux options :\n\n` +
+            `OPTION A : CONDITIONNEMENT SAC (25kg)\n` +
+            `- ${totalPallets} Palette(s)\n` +
+            `- ${document.getElementById('nbExtraBags').innerText} Sac(s) de reliquat\n` +
+            `(Soit un total de ${totalBags} sacs)\n\n` +
+            `OPTION B : CONDITIONNEMENT VRAC (Big Bag)\n` +
+            `${bbDetails}\n` +
             `Merci de me recontacter pour finaliser cette demande.\n\n` +
             `Cordialement,`;
 
