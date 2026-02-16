@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier V30 (Négociant Inclus)</title>
+    <title>Calculatrice Biamortier V31 (M5/M10 + Couleur)</title>
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
@@ -849,6 +849,11 @@
                         <label for="userDealer">Négociant de matériaux (Souhaité) <span class="required-star">*</span></label>
                         <input type="text" id="userDealer" placeholder="Ex: Point P, Chausson, BigMat..." style="padding:10px; font-size:0.9rem;">
                     </div>
+
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label for="userColor" style="color:var(--accent-color);">Couleur de joint souhaitée <span class="required-star">*</span></label>
+                        <input type="text" id="userColor" placeholder="Ex: Gris Ciment, Beige, Ton Pierre..." style="padding:10px; font-size:0.9rem; border-color:var(--accent-color);">
+                    </div>
                     
                     <div class="form-group" style="margin-bottom:0;">
                         <label for="userRef">Référence Chantier</label>
@@ -1487,20 +1492,20 @@
     }
     
     // ---------------------------------------------------------
-    // 5. FONCTION MAIL DEVIS (MISE A JOUR V30)
+    // 5. FONCTION MAIL DEVIS (MISE A JOUR V31)
     // ---------------------------------------------------------
     function sendQuoteEmail() {
         // --- VALIDATION DU FORMULAIRE DE CONTACT ---
         const company = document.getElementById('userCompany').value.trim();
         const contact = document.getElementById('userContact').value.trim();
         const dealer = document.getElementById('userDealer').value.trim();
+        const color = document.getElementById('userColor').value.trim(); // NEW (Couleur)
         const refChantier = document.getElementById('userRef').value.trim();
 
-        if (!company || !contact || !dealer) {
-            alert("Veuillez renseigner l'entreprise, le contact et le négociant avant d'envoyer la demande.");
-            // On scroll vers le formulaire pour aider l'utilisateur
+        if (!company || !contact || !dealer || !color) {
+            alert("Veuillez remplir tous les champs obligatoires (Entreprise, Contact, Négociant, Couleur) !");
             document.querySelector('.contact-form-wrapper').scrollIntoView({behavior: 'smooth'});
-            return; // Stop function here
+            return; 
         }
 
         // 1. Récupération des données du calcul affiché
@@ -1547,6 +1552,7 @@
             
             subjectRef += ` - ${formattedProduct}`;
             productDetails = `Produit : ${formattedProduct}\n`;
+            productDetails += `Couleur demandée : ${color.toUpperCase()}\n`; // Ajout Couleur
             productDetails += `Surface à jointer : ${surface} m²\n`;
             productDetails += `Dimensions plaquette : ${document.getElementById('jointL').value}x${document.getElementById('jointH').value} mm\n`;
             productDetails += `Joint : ${document.getElementById('jointW').value}mm (Largeur) x ${document.getElementById('jointD').value}mm (Profondeur)\n`;
@@ -1564,12 +1570,15 @@
             }
 
             const surface = document.getElementById('surface').value;
+            
+            // --- LOGIQUE M5 vs M10 (V31) ---
             const isCoated = document.getElementById('isCoated').checked;
-            const prodName = isCoated ? "Biamortier M10 (Coated)" : "Biamortier Standard";
+            const prodName = isCoated ? "BIAMORTIER M10 (Gamme Coated)" : "BIAMORTIER M5 (Standard)";
 
             subjectRef += ` - ${prodName}`;
             productDetails = `Produit : ${prodName}\n`;
-            productDetails += `Gamme : ${cat}\n`;
+            productDetails += `Couleur demandée : ${color.toUpperCase()}\n`; // Ajout Couleur
+            productDetails += `Gamme brique : ${cat}\n`;
             productDetails += `Format Brique : ${refName}\n`;
             if(currentMortarMode === 'surface') {
                 productDetails += `Surface mur : ${surface} m²\n`;
