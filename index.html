@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier V25 (Data CSV)</title>
+    <title>Calculatrice Biamortier V26 (Usage & Logistique)</title>
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
@@ -447,6 +447,18 @@
             text-align: center; font-size: 0.85rem; color: #718096; margin-top: 20px;
             font-style: italic; background: #edf2f7; padding: 10px; border-radius: 8px;
         }
+        
+        /* NEW: Style pour la description d'usage Joint */
+        #joint-usage-desc {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #555;
+            background: #f8fafc;
+            padding: 10px;
+            border-left: 4px solid var(--joint-color);
+            border-radius: 4px;
+            line-height: 1.4;
+        }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
@@ -657,7 +669,19 @@
             </div>
 
             <div class="form-group">
-                <label style="color:var(--joint-color);">1. Dimensions de la plaquette (mm)</label>
+                <label style="color:var(--joint-color);">1. Choix du Produit Joint</label>
+                <select id="jointProductType" onchange="updateJointInfo()">
+                    <option value="biajoint">BIAJOINT (Classique)</option>
+                    <option value="easyjoint">EASY JOINT</option>
+                </select>
+                
+                <div id="joint-usage-desc">
+                    Usage : Rejointoiement traditionnel à la main.
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label style="color:var(--joint-color);">2. Dimensions de la plaquette (mm)</label>
                 <div class="dims-grid">
                     <div class="dim-input">
                         <label>Longueur</label>
@@ -671,7 +695,7 @@
             </div>
 
             <div class="form-group">
-                <label style="color:var(--joint-color);">2. Dimensions du joint (mm)</label>
+                <label style="color:var(--joint-color);">3. Dimensions du joint (mm)</label>
                 <div class="dims-grid">
                     <div class="dim-input">
                         <label>Largeur Joint</label>
@@ -685,13 +709,12 @@
             </div>
 
             <div class="form-group">
-                <label for="jointSurface">3. Surface Totale à jointer (m²)</label>
+                <label for="jointSurface">4. Surface Totale à jointer (m²)</label>
                 <input type="number" id="jointSurface" placeholder="Ex: 50">
             </div>
 
             <p style="font-size:0.9rem; color:#718096; margin-bottom:20px; background:#f3e5f5; padding:10px; border-radius:8px;">
-                <strong>Options :</strong> Le calcul est valable pour <strong>Biajoint</strong> ou <strong>Easy Joint</strong>.<br>
-                Calibré sur une consommation réelle (perte incluse).
+                <strong>Info :</strong> Calibré sur une consommation réelle (perte incluse).
             </p>
 
         </div>
@@ -1121,17 +1144,43 @@
              jointInput.value = db[cat].items[0].jointRef;
         }
     }
+    
+    // NEW: Update Text description on Joint type change
+    function updateJointInfo() {
+        resultCard.style.display='none';
+        const type = document.getElementById('jointProductType').value;
+        const desc = document.getElementById('joint-usage-desc');
+        
+        if(type === 'biajoint') {
+            desc.innerHTML = "<strong>Usage :</strong> Rejointoiement traditionnel à la main.";
+        } else {
+            desc.innerHTML = "<strong>Usage :</strong> Rejointoiement à la poche à douille ou à la machine Easyfast.";
+        }
+    }
 
     // --- ALGORITHMES LOGISTIQUES ---
-    function solveBigBags(weight) {
+    // Update : Added maxBagSize constraint for Easy Joint logic
+    function solveBigBags(weight, maxBagSize = 1400) {
         let remaining = weight;
         let solution = { 1400: 0, 1000: 0, 700: 0 };
-        solution[1400] = Math.floor(remaining / 1400);
-        remaining = remaining % 1400;
-        if (remaining > 0) {
-            if (remaining <= 700) solution[700]++;
-            else if (remaining <= 1000) solution[1000]++;
-            else solution[1400]++; 
+
+        if (maxBagSize === 1400) {
+            // Logique standard (Biajoint / Mortier)
+            solution[1400] = Math.floor(remaining / 1400);
+            remaining = remaining % 1400;
+            if (remaining > 0) {
+                if (remaining <= 700) solution[700]++;
+                else if (remaining <= 1000) solution[1000]++;
+                else solution[1400]++; 
+            }
+        } else {
+            // Logique Easy Joint (Max 1000)
+            solution[1000] = Math.floor(remaining / 1000);
+            remaining = remaining % 1000;
+             if (remaining > 0) {
+                if (remaining <= 700) solution[700]++;
+                else solution[1000]++;
+            }
         }
         return solution;
     }
@@ -1154,7 +1203,10 @@
         let totalBricks = 0;
         let infoText = "";
         let consumptionPerM2 = 0; 
-        let showConsom = false;   
+        let showConsom = false;
+        
+        // Logistique Flag
+        let maxBagSize = 1400; // Par défaut
 
         // ========================
         // 1. MODE JOINT
@@ -1165,9 +1217,18 @@
              const W_mm = parseFloat(document.getElementById('jointW').value); 
              const D_mm = parseFloat(document.getElementById('jointD').value); 
              const Surf = parseFloat(document.getElementById('jointSurface').value);
+             const productType = document.getElementById('jointProductType').value;
 
              if(!L_mm || !H_mm || !W_mm || !D_mm || !Surf) {
                  alert("Veuillez remplir toutes les dimensions et la surface."); return;
+             }
+             
+             // Check produit pour logistique
+             if(productType === 'easyjoint') {
+                 maxBagSize = 1000;
+                 infoText = "Calcul spécifique Easy Joint (Sacs max 1000kg).<br>";
+             } else {
+                 infoText = "Calcul standard Biajoint.<br>";
              }
 
              const L = L_mm / 1000; const H = H_mm / 1000; const W = W_mm / 1000; const D = D_mm / 1000;
@@ -1187,7 +1248,7 @@
              consumptionPerM2 = totalMortarKg / Surf;
              showConsom = true;
 
-             infoText = "Calcul calibré sur retours chantier (Coef perte/compactage inclus).";
+             infoText += "Calibré sur retours chantier (Coef perte/compactage inclus).";
              document.getElementById('brick-result-line').style.display = 'none';
         }
 
@@ -1299,7 +1360,7 @@
         }
 
         // --- AFFICHAGE RESULTATS ---
-        const bigBagSol = solveBigBags(totalMortarKg);
+        const bigBagSol = solveBigBags(totalMortarKg, maxBagSize);
         const palletSol = solvePallets(totalMortarKg);
 
         document.getElementById('totalWeight').innerText = Math.ceil(totalMortarKg).toLocaleString('fr-FR');
