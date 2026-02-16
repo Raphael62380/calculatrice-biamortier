@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculatrice Biamortier V29 (Détail complet Mail)</title>
+    <title>Calculatrice Biamortier V30 (Négociant Inclus)</title>
     <link rel="icon" type="image/png" href="icon.png">
     <style>
         :root {
@@ -844,6 +844,11 @@
                         <label for="userContact">Nom du contact <span class="required-star">*</span></label>
                         <input type="text" id="userContact" placeholder="Ex: Jean Dupont" style="padding:10px; font-size:0.9rem;">
                     </div>
+
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label for="userDealer">Négociant de matériaux (Souhaité) <span class="required-star">*</span></label>
+                        <input type="text" id="userDealer" placeholder="Ex: Point P, Chausson, BigMat..." style="padding:10px; font-size:0.9rem;">
+                    </div>
                     
                     <div class="form-group" style="margin-bottom:0;">
                         <label for="userRef">Référence Chantier</label>
@@ -1482,49 +1487,42 @@
     }
     
     // ---------------------------------------------------------
-    // 5. FONCTION MAIL DEVIS (MISE A JOUR V29)
+    // 5. FONCTION MAIL DEVIS (MISE A JOUR V30)
     // ---------------------------------------------------------
     function sendQuoteEmail() {
         // --- VALIDATION DU FORMULAIRE DE CONTACT ---
         const company = document.getElementById('userCompany').value.trim();
         const contact = document.getElementById('userContact').value.trim();
+        const dealer = document.getElementById('userDealer').value.trim();
         const refChantier = document.getElementById('userRef').value.trim();
 
-        if (!company || !contact) {
-            alert("Veuillez renseigner le nom de l'entreprise et le nom du contact avant d'envoyer la demande.");
+        if (!company || !contact || !dealer) {
+            alert("Veuillez renseigner l'entreprise, le contact et le négociant avant d'envoyer la demande.");
             // On scroll vers le formulaire pour aider l'utilisateur
             document.querySelector('.contact-form-wrapper').scrollIntoView({behavior: 'smooth'});
             return; // Stop function here
         }
 
         // 1. Récupération des données du calcul affiché
-        const totalWeightText = document.getElementById('totalWeight').innerText; // Chaine affichée (ex: "1 200")
+        const totalWeightText = document.getElementById('totalWeight').innerText; 
         const totalVolume = document.getElementById('totalVolume').innerText;
         const totalPallets = document.getElementById('nbPallets').innerText;
         const totalBags = document.getElementById('totalBagsCount').innerText;
         
         // --- RE-CALCUL PRÉCIS POUR LES BIG BAGS DANS LE MAIL ---
-        // On nettoie la chaine pour récupérer un nombre (supprime espaces et virgules)
         let weightVal = parseFloat(totalWeightText.replace(/\s/g, '').replace(',', '.'));
-        
-        // Détermination limite sac (Même logique que calculate())
         let maxBB = 1400;
         if(currentMainType === 'joint' && document.getElementById('jointProductType').value === 'easyjoint') {
             maxBB = 1000;
         }
 
-        // Appel de la fonction de calcul BigBag
         let bbSol = solveBigBags(weightVal, maxBB);
-        
-        // Construction du texte Big Bag pour le mail
         let bbDetails = "";
         let hasBB = false;
         if(bbSol[1400] > 0) { bbDetails += `- ${bbSol[1400]} Big Bag(s) de 1400kg\n`; hasBB = true; }
         if(bbSol[1000] > 0) { bbDetails += `- ${bbSol[1000]} Big Bag(s) de 1000kg\n`; hasBB = true; }
         if(bbSol[700] > 0)  { bbDetails += `- ${bbSol[700]} Big Bag(s) de 700kg\n`; hasBB = true; }
-        
         if(!hasBB) bbDetails = "- Quantité insuffisante pour du vrac\n";
-        // ------------------------------------------------------
 
         // 2. Construction du détail Produit
         let productDetails = "";
@@ -1580,7 +1578,7 @@
             }
         }
 
-        // 3. Construction du Corps du mail (AVEC DEUX OPTIONS CLAIRES)
+        // 3. Construction du Corps du mail
         const emailBody = `Bonjour BIALLAIS Industries,\n\n` +
             `Voici une demande de prix pour le chantier suivant :\n\n` +
             `==============================\n` +
@@ -1588,6 +1586,7 @@
             `==============================\n` +
             `Entreprise : ${company}\n` +
             `Contact : ${contact}\n` +
+            `Négociant souhaité : ${dealer}\n` +
             `Référence Chantier : ${refChantier}\n\n` +
             `==============================\n` +
             `DÉTAILS TECHNIQUES\n` +
